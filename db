@@ -1,0 +1,161 @@
+CREATE TABLE home (
+    id_home INT PRIMARY KEY,
+    sejarah TEXT,
+    gambar TEXT
+);
+
+CREATE TABLE users (
+    id_user INT PRIMARY KEY,
+    name VARCHAR(255),
+    username VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    role VARCHAR(50),
+    createdAt DATETIME,
+    updatedAt DATETIME
+);
+
+CREATE TABLE role (
+    user VARCHAR(50),
+    admin VARCHAR(50),
+    penawar VARCHAR(50)
+);
+
+CREATE TABLE macamSapi (
+    id_macamSapi INT PRIMARY KEY,
+    name VARCHAR(255)
+);
+
+CREATE TABLE data_sapi (
+    id_sapi INT PRIMARY KEY,
+    foto_sapi TEXT,
+    harga_sapi INT,
+    nama_pemilik VARCHAR(255),
+    alamat_pemilik VARCHAR(255),
+    nomor_pemilik VARCHAR(100),
+    email_pemilik VARCHAR(255),
+    createdAt DATETIME,
+    updatedAt DATETIME,
+    id_macamSapi INT,
+    FOREIGN KEY (id_macamSapi) REFERENCES macamSapi(id_macamSapi)
+);
+
+CREATE TABLE lelang (
+    id_lelang INT PRIMARY KEY,
+    harga_awal INT,
+    harga_tertinggi INT,
+    batas_waktu DATETIME,
+    status VARCHAR(50),
+    createdAt DATETIME,
+    updatedAt DATETIME,
+    id_sapi INT,
+    FOREIGN KEY (id_sapi) REFERENCES data_sapi(id_sapi)
+);
+
+CREATE TABLE Penawaran (
+    id_penawaran INT PRIMARY KEY,
+    id_lelang INT,
+    harga_tawaran INT,
+    waktu_tawaran DATETIME,
+    FOREIGN KEY (id_lelang) REFERENCES lelang(id_lelang)
+);
+
+CREATE TABLE chatRooms (
+    id_chatRooms INT PRIMARY KEY,
+    id_sapi INT,
+    nama_pengirim VARCHAR(255),
+    createdAt DATETIME,
+    updatedAt DATETIME,
+    FOREIGN KEY (id_sapi) REFERENCES data_sapi(id_sapi)
+);
+
+CREATE TABLE chatMessage (
+    id_message INT PRIMARY KEY,
+    id_chatRooms INT,
+    pesan TEXT,
+    waktu_kirim DATETIME,
+    FOREIGN KEY (id_chatRooms) REFERENCES chatRooms(id_chatRooms)
+);
+
+-- Detail Sapi
+
+CREATE TABLE sapiSonok (
+    id INT PRIMARY KEY,
+    nama_sapi VARCHAR(255),
+    umur VARCHAR(50),
+    lingkar_dada VARCHAR(50),
+    panjang_badan VARCHAR(50),
+    tinggi_badan VARCHAR(50),
+    tinggi_pundak VARCHAR(50),
+    lebar_dahi VARCHAR(50),
+    panjang_wajah VARCHAR(50),
+    lebar_pinggul VARCHAR(50),
+    tinggi_kaki VARCHAR(50),
+    warna_bulu VARCHAR(50),
+    generasiSatu INT,
+    generasiDua INT,
+    FOREIGN KEY (generasiSatu) REFERENCES generasiSatu(id),
+    FOREIGN KEY (generasiDua) REFERENCES generasiDua(id)
+);
+
+CREATE TABLE sapiKerap (
+    id INT PRIMARY KEY,
+    id_sapi INT,
+    ketahanan_fisik VARCHAR(50),
+    kecepatan_lari VARCHAR(50),
+    penghargaan VARCHAR(255),
+    FOREIGN KEY (id_sapi) REFERENCES data_sapi(id_sapi)
+);
+
+CREATE TABLE sapiTernak (
+    id INT PRIMARY KEY,
+    id_sapi INT,
+    kesuburan VARCHAR(50),
+    riwayat_kesehatan VARCHAR(255),
+    FOREIGN KEY (id_sapi) REFERENCES data_sapi(id_sapi)
+);
+
+CREATE TABLE sapiTangghek (
+    id INT PRIMARY KEY,
+    tinggi_badan INT,
+    panjang_badan INT,
+    lingkar_dada INT,
+    bobot_badan INT,
+    frekuensi_latihan VARCHAR(50),
+    jarak_latihan VARCHAR(50),
+    prestasi VARCHAR(255),
+    kesehatan VARCHAR(255)
+);
+
+CREATE TABLE sapiPotong (
+    id INT PRIMARY KEY,
+    nama_sapi VARCHAR(255),
+    berat_badan VARCHAR(50),
+    persentase_daging VARCHAR(50)
+);
+
+-- Generasi
+
+CREATE TABLE generasiSatu (
+    id INT PRIMARY KEY,
+    namaPejantanGenerasiSatu VARCHAR(255),
+    jenisPejantanGenerasiSatu VARCHAR(255),
+    namaIndukGenerasiSatu VARCHAR(255),
+    jenisIndukGenerasiSatu VARCHAR(255),
+    createdAt DATETIME,
+    updatedAt DATETIME
+);
+
+CREATE TABLE generasiDua (
+    id INT PRIMARY KEY,
+    namaPejantanGenerasiDua VARCHAR(255),
+    jenisPejantanGenerasiDua VARCHAR(255),
+    namaIndukGenerasiDua VARCHAR(255),
+    jenisIndukGenerasiDua VARCHAR(255),
+    namaKakekPejantanGenerasiDua VARCHAR(255),
+    namaNenekPejantanGenerasiDua VARCHAR(255),
+    namaKakekIndukGenerasiDua VARCHAR(255),
+    namaNenekIndukGenerasiDua VARCHAR(255),
+    createdAt DATETIME,
+    updatedAt DATETIME
+);
