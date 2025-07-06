@@ -18,8 +18,8 @@
             <ul class="nav-links">
                 <li><a href="../pembeli/beranda.php">Beranda</a></li>
                 <li><a href="../pembeli/peta_interaktif.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=kerap&id_sapi=1">Data Sapi</a></li>
-                <li><a href="#cow-data">Lelang</a></li>
+                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../pembeli/lelang.php">Lelang</a></li>
 
             </ul>
             <div class="auth-links">

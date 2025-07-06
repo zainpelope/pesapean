@@ -1,5 +1,3 @@
-CREATE DATABASE sapi_auction;
-USE sapi_auction;
 
 -- Tabel users
 CREATE TABLE users (

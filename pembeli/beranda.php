@@ -30,6 +30,8 @@ if ($koneksi) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesapean - Preferensi Sapi dan Penjualan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
 </head>
@@ -43,8 +45,8 @@ if ($koneksi) {
             <ul class="nav-links">
                 <li><a href="">Beranda</a></li>
                 <li><a href="../pembeli/peta_interaktif.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=kerap&id_sapi=1">Data Sapi</a></li>
-                <li><a href="#cow-data">Lelang</a></li>
+                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../pembeli/lelang.php">Lelang</a></li>
 
             </ul>
             <div class="auth-links">
