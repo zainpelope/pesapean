@@ -5,7 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Include koneksi.php for database connection
-include 'koneksi.php';
+include '../koneksi.php';
 
 // Inisialisasi $data dengan nilai default null
 $data = null;
@@ -29,21 +29,21 @@ if ($koneksi) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesape'an - Preferensi Sapi dan Penjualan</title>
+    <title>Pesapean - Preferensi Sapi dan Penjualan</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="#">Pesape'an</a>
+                <a href="#">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="#home">Beranda</a></li>
-                <li><a href="#interactive-map">Peta Interaktif</a></li>
-                <li><a href="#cow-data">Data Sapi</a></li>
+                <li><a href="">Beranda</a></li>
+                <li><a href="../pembeli/peta_interaktif.php">Peta Interaktif</a></li>
+                <li><a href="../pembeli/data_sapi.php?jenis=kerap&id_sapi=1">Data Sapi</a></li>
                 <li><a href="#cow-data">Lelang</a></li>
 
             </ul>
@@ -55,9 +55,9 @@ if ($koneksi) {
 
     <main>
         <section id="home" class="hero-section">
-            <img src="sapi.jpg" alt="Two cows adorned for an event" class="hero-image">
+            <img src="../sapi.jpg" alt="Two cows adorned for an event" class="hero-image">
             <div class="hero-content">
-                <h1>Pesape'an (Preferensi Sapi dan Penjualan)</h1>
+                <h1>Pesapean (Preferensi Sapi dan Penjualan)</h1>
                 <p>Website ini membantu anda dalam menentukan preferensi sapi dan penjualan yang anda inginkan.</p>
                 <a href="#join-us" class="btn btn-secondary">Join With Us</a>
             </div>
@@ -66,7 +66,7 @@ if ($koneksi) {
         <section id="about" class="about-section">
             <div class="about-image">
                 <?php if ($data && isset($data['gambar'])): ?>
-                    <img src="uploads/<?php echo htmlspecialchars($data['gambar']); ?>" alt="A decorated cow">
+                    <img src="../uploads/<?php echo htmlspecialchars($data['gambar']); ?>" alt="A decorated cow">
                 <?php else: ?>
                     <img src="placeholder.jpg" alt="No Image Available">
                 <?php endif; ?>
@@ -85,26 +85,26 @@ if ($koneksi) {
             <h3 class="section-title">Tim Kami</h3>
             <div class="team-container">
                 <div class="team-member">
-                    <img src="images/1.png" alt="Tim 1">
+                    <img src="../images/1.png" alt="Tim 1">
                     <p class="member-name">Nama Anggota 1</p>
                 </div>
                 <div class="team-member">
-                    <img src="images/2.png" alt="Tim 2">
+                    <img src="../images/2.png" alt="Tim 2">
                     <p class="member-name">Nama Anggota 2</p>
                 </div>
                 <div class="team-member">
-                    <img src="images/3.png" alt="Tim 3">
+                    <img src="../images/3.png" alt="Tim 3">
                     <p class="member-name">Nama Anggota 3</p>
                 </div>
                 <div class="team-member">
-                    <img src="images/4.png" alt="Tim 4">
+                    <img src="../images/4.png" alt="Tim 4">
                     <p class="member-name">Nama Anggota 4</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include '../footer.php'; ?>
 </body>
 
 </html>
