@@ -2,7 +2,7 @@
 $host = "localhost"; // Or your database host (e.g., "127.0.0.1")
 $username = "root"; // Your database username
 $password = "root"; // Your database password
-$database = "db_sapi"; // Your database name
+$database = "sapi"; // Your database name
 
 // Create connection
 $koneksi = mysqli_connect($host, $username, $password, $database);

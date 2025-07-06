@@ -1,6 +1,8 @@
 <?php
 include 'koneksi.php';
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 // Proses jika form disubmit
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $foto = $_FILES['foto']['name'];
