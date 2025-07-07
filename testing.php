@@ -1,23 +1,148 @@
 <?php
-include '../koneksi.php';
+// process_form.php
+// File ini akan memproses data yang dikirim dari formulir dan menyimpannya ke database.
 
-$jenis_filter = isset($_GET['jenis']) ? $_GET['jenis'] : 'all';
+include 'db_connect.php'; // Memasukkan file koneksi database
 
-$jenis_map = [
-    'sonok' => 1,
-    'kerap' => 2,
-    'tangghek' => 3,
-    'ternak' => 4,
-    'potong' => 5,
-];
+// Inisialisasi variabel untuk pesan sukses/error
+$message = '';
+$messageType = ''; // 'success' atau 'error'
 
-$query = "SELECT ds.*, ms.name AS jenis_sapi FROM data_sapi ds 
-          LEFT JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi";
-if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
-    $id_m = $jenis_map[$jenis_filter];
-    $query .= " WHERE ds.id_macamSapi = $id_m";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // 1. Ambil dan sanitasi data dari tabel data_sapi
+    $id_macamSapi = isset($_POST['id_macamSapi']) ? sanitize_input($_POST['id_macamSapi']) : '';
+    $foto_sapi = isset($_POST['foto_sapi']) ? sanitize_input($_POST['foto_sapi']) : '';
+    $harga_sapi = isset($_POST['harga_sapi']) ? (int)sanitize_input($_POST['harga_sapi']) : 0;
+    $nama_pemilik = isset($_POST['nama_pemilik']) ? sanitize_input($_POST['nama_pemilik']) : '';
+    $alamat_pemilik = isset($_POST['alamat_pemilik']) ? sanitize_input($_POST['alamat_pemilik']) : '';
+    $nomor_pemilik = isset($_POST['nomor_pemilik']) ? sanitize_input($_POST['nomor_pemilik']) : '';
+    $email_pemilik = isset($_POST['email_pemilik']) ? sanitize_input($_POST['email_pemilik']) : '';
+    $createdAt = date('Y-m-d H:i:s');
+    $updatedAt = date('Y-m-d H:i:s');
+
+    // Validasi dasar
+    if (empty($id_macamSapi) || empty($harga_sapi) || empty($nama_pemilik) || empty($alamat_pemilik) || empty($nomor_pemilik) || empty($email_pemilik)) {
+        $message = "Error: Semua kolom utama harus diisi.";
+        $messageType = "error";
+    } else {
+        // Mulai transaksi untuk memastikan integritas data
+        $conn->begin_transaction();
+
+        try {
+            // 2. Masukkan data ke tabel data_sapi
+            $stmt_data_sapi = $conn->prepare("INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_data_sapi->bind_param("isdssssss", $id_macamSapi, $foto_sapi, $harga_sapi, $nama_pemilik, $alamat_pemilik, $nomor_pemilik, $email_pemilik, $createdAt, $updatedAt);
+
+            if (!$stmt_data_sapi->execute()) {
+                throw new Exception("Error saat menyimpan data_sapi: " . $stmt_data_sapi->error);
+            }
+
+            $id_sapi = $conn->insert_id; // Dapatkan ID sapi yang baru saja dimasukkan
+            $stmt_data_sapi->close();
+
+            // 3. Masukkan data ke tabel spesifik jenis sapi
+            switch ($id_macamSapi) {
+                case '1': // Sapi Sonok
+                    $nama_sapi = sanitize_input($_POST['sonok_nama_sapi'] ?? '');
+                    $umur = sanitize_input($_POST['sonok_umur'] ?? '');
+                    $lingkar_dada = sanitize_input($_POST['sonok_lingkar_dada'] ?? '');
+                    $panjang_badan = sanitize_input($_POST['sonok_panjang_badan'] ?? '');
+                    $tinggi_pundak = sanitize_input($_POST['sonok_tinggi_pundak'] ?? '');
+                    $tinggi_punggung = sanitize_input($_POST['sonok_tinggi_punggung'] ?? '');
+                    $panjang_wajah = sanitize_input($_POST['sonok_panjang_wajah'] ?? '');
+                    $lebar_punggul = sanitize_input($_POST['sonok_lebar_punggul'] ?? '');
+                    $lebar_dada = sanitize_input($_POST['sonok_lebar_dada'] ?? '');
+                    $tinggi_kaki = sanitize_input($_POST['sonok_tinggi_kaki'] ?? '');
+                    $kesehatan = sanitize_input($_POST['sonok_kesehatan'] ?? '');
+                    $generasiSatu = (int)sanitize_input($_POST['sonok_generasiSatu'] ?? 0);
+                    $generasiDua = (int)sanitize_input($_POST['sonok_generasiDua'] ?? 0);
+
+                    $stmt_sonok = $conn->prepare("INSERT INTO sapiSonok (id_sapi, nama_sapi, umur, lingkar_dada, panjang_badan, tinggi_pundak, tinggi_punggung, panjang_wajah, lebar_punggul, lebar_dada, tinggi_kaki, kesehatan, generasiSatu, generasiDua) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt_sonok->bind_param("isssssssssssii", $id_sapi, $nama_sapi, $umur, $lingkar_dada, $panjang_badan, $tinggi_pundak, $tinggi_punggung, $panjang_wajah, $lebar_punggul, $lebar_dada, $tinggi_kaki, $kesehatan, $generasiSatu, $generasiDua);
+                    if (!$stmt_sonok->execute()) {
+                        throw new Exception("Error saat menyimpan sapiSonok: " . $stmt_sonok->error);
+                    }
+                    $stmt_sonok->close();
+                    break;
+
+                case '2': // Sapi Kerap
+                    $nama_sapi = sanitize_input($_POST['kerap_nama_sapi'] ?? '');
+                    $ketahanan_fisik = sanitize_input($_POST['kerap_ketahanan_fisik'] ?? '');
+                    $kecepatan_lari = sanitize_input($_POST['kerap_kecepatan_lari'] ?? '');
+                    $penghargaan = sanitize_input($_POST['kerap_penghargaan'] ?? '');
+
+                    $stmt_kerap = $conn->prepare("INSERT INTO sapiKerap (id_sapi, nama_sapi, ketahanan_fisik, kecepatan_lari, penghargaan) VALUES (?, ?, ?, ?, ?)");
+                    $stmt_kerap->bind_param("issss", $id_sapi, $nama_sapi, $ketahanan_fisik, $kecepatan_lari, $penghargaan);
+                    if (!$stmt_kerap->execute()) {
+                        throw new Exception("Error saat menyimpan sapiKerap: " . $stmt_kerap->error);
+                    }
+                    $stmt_kerap->close();
+                    break;
+
+                case '3': // Sapi Tangeh
+                    $tinggi_badan = sanitize_input($_POST['tangeh_tinggi_badan'] ?? '');
+                    $panjang_badan = sanitize_input($_POST['tangeh_panjang_badan'] ?? '');
+                    $lingkar_dada = sanitize_input($_POST['tangeh_lingkar_dada'] ?? '');
+                    $bobot_badan = sanitize_input($_POST['tangeh_bobot_badan'] ?? '');
+                    $intensitas_latihan = sanitize_input($_POST['tangeh_intensitas_latihan'] ?? '');
+                    $jarak_latihan = sanitize_input($_POST['tangeh_jarak_latihan'] ?? '');
+                    $prestasi = sanitize_input($_POST['tangeh_prestasi'] ?? '');
+                    $kesehatan = sanitize_input($_POST['tangeh_kesehatan'] ?? '');
+
+                    $stmt_tangeh = $conn->prepare("INSERT INTO sapiTangeh (id_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt_tangeh->bind_param("issssssss", $id_sapi, $tinggi_badan, $panjang_badan, $lingkar_dada, $bobot_badan, $intensitas_latihan, $jarak_latihan, $prestasi, $kesehatan);
+                    if (!$stmt_tangeh->execute()) {
+                        throw new Exception("Error saat menyimpan sapiTangeh: " . $stmt_tangeh->error);
+                    }
+                    $stmt_tangeh->close();
+                    break;
+
+                case '4': // Sapi Termak
+                    $nama_sapi = sanitize_input($_POST['termak_nama_sapi'] ?? '');
+                    $kesuburan = sanitize_input($_POST['termak_kesuburan'] ?? '');
+                    $riwayat_kesehatan = sanitize_input($_POST['termak_riwayat_kesehatan'] ?? '');
+
+                    $stmt_termak = $conn->prepare("INSERT INTO sapiTermak (id_sapi, nama_sapi, kesuburan, riwayat_kesehatan) VALUES (?, ?, ?, ?)");
+                    $stmt_termak->bind_param("isss", $id_sapi, $nama_sapi, $kesuburan, $riwayat_kesehatan);
+                    if (!$stmt_termak->execute()) {
+                        throw new Exception("Error saat menyimpan sapiTermak: " . $stmt_termak->error);
+                    }
+                    $stmt_termak->close();
+                    break;
+
+                case '5': // Sapi Potong
+                    $nama_sapi = sanitize_input($_POST['potong_nama_sapi'] ?? '');
+                    $berat_badan = sanitize_input($_POST['potong_berat_badan'] ?? '');
+                    $persentase_daging = sanitize_input($_POST['potong_persentase_daging'] ?? '');
+
+                    $stmt_potong = $conn->prepare("INSERT INTO sapiPotong (id_sapi, nama_sapi, berat_badan, persentase_daging) VALUES (?, ?, ?, ?)");
+                    $stmt_potong->bind_param("isss", $id_sapi, $nama_sapi, $berat_badan, $persentase_daging);
+                    if (!$stmt_potong->execute()) {
+                        throw new Exception("Error saat menyimpan sapiPotong: " . $stmt_potong->error);
+                    }
+                    $stmt_potong->close();
+                    break;
+
+                default:
+                    // Tidak ada tindakan spesifik jika id_macamSapi tidak cocok
+                    break;
+            }
+
+            $conn->commit(); // Commit transaksi jika semua berhasil
+            $message = "Data sapi berhasil disimpan!";
+            $messageType = "success";
+        } catch (Exception $e) {
+            $conn->rollback(); // Rollback transaksi jika ada error
+            $message = "Error: " . $e->getMessage();
+            $messageType = "error";
+        }
+    }
+
+    $conn->close();
+} else {
+    $message = "Akses tidak valid.";
+    $messageType = "error";
 }
-$result = mysqli_query($koneksi, $query);
 ?>
 
 <!DOCTYPE html>
@@ -25,227 +150,77 @@ $result = mysqli_query($koneksi, $query);
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Data Sapi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Penyimpanan Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #f5f5f5;
-        }
-
-        .nav-link.active {
-            color: red !important;
-        }
-
-        .btn-filter {
-            margin: 5px;
-        }
-
-        .foto-sapi {
-            width: 100%;
-            height: 250px;
-            background-color: #ccc;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
             display: flex;
-            align-items: center;
             justify-content: center;
-            overflow: hidden;
-            border-top-left-radius: 0.375rem;
-            border-top-right-radius: 0.375rem;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        .foto-sapi img {
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 600px;
+            text-align: center;
         }
 
-        .detail-sapi {
-            font-size: 14px;
-        }
-
-        .chat-btn-container {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            z-index: 10;
-            /* Ensure the button is on top */
-        }
-
-        .generation-box {
-            background-color: #555;
-            color: white;
+        .message {
             padding: 15px;
-            text-align: center;
-            margin-bottom: 15px;
-            border-radius: 6px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
 
-        .contact-box {
-            background-color: #ccc;
-            text-align: center;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 15px;
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .btn-back {
+            background-color: #6b7280;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-back:hover {
+            background-color: #4b5563;
         }
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-4">
-        <a class="navbar-brand" href="#"><button class="btn btn-secondary">logo</button></a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="#">Beranda</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Peta Interaktif</a></li>
-                <li class="nav-item"><a class="nav-link active" href="#">Data Sapi</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Lelang</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Login</a></li>
-            </ul>
+    <div class="container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Status Penyimpanan Data</h2>
+        <div class="message <?php echo htmlspecialchars($messageType); ?>">
+            <?php echo htmlspecialchars($message); ?>
         </div>
-    </nav>
-
-    <div class="text-center mt-3">
-        <?php foreach ($jenis_map as $jk => $idm): ?>
-            <a href="?jenis=<?= $jk ?>" class="btn btn-secondary btn-filter <?= ($jenis_filter == $jk) ? 'active' : '' ?>">
-                Sapi <?= ucfirst($jk) ?>
-            </a>
-        <?php endforeach; ?>
-        <a href="?jenis=all" class="btn btn-secondary btn-filter <?= ($jenis_filter == 'all') ? 'active' : '' ?>">
-            Semua
-        </a>
+        <a href="index.php" class="btn-back">Kembali ke Formulir</a>
     </div>
-
-    <div class="container mt-4">
-        <div class="row">
-            <?php if (mysqli_num_rows($result) > 0): ?>
-                <?php while ($r = mysqli_fetch_assoc($result)): ?>
-                    <div class="col-md-6 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="foto-sapi">
-                                <?php if (!empty($r['foto_sapi']) && file_exists("../uploads/{$r['foto_sapi']}")): ?>
-                                    <img src="../uploads/<?= $r['foto_sapi'] ?>" alt="Foto Sapi">
-                                <?php else: ?>
-                                    <span>Tidak ada foto</span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="card-body position-relative">
-                                <div class="chat-btn-container">
-                                    <?php
-                                    // Clean the contact number to ensure only digits are passed to WhatsApp
-                                    // Assumes contact_person column contains the phone number
-                                    $whatsapp_number = preg_replace('/[^0-9]/', '', $r['contact_person']);
-                                    // Optional: Add '62' prefix if the number doesn't start with it (for Indonesia)
-                                    if (!empty($whatsapp_number) && substr($whatsapp_number, 0, 1) === '0') {
-                                        $whatsapp_number = '62' . substr($whatsapp_number, 1);
-                                    }
-                                    ?>
-                                    <a href="https://wa.me/<?= $whatsapp_number ?>" target="_blank" class="btn btn-secondary chat-btn">Chat Penjual</a>
-                                </div>
-                                <h5 class="card-title"><?= $r['jenis_sapi'] ?> – <?= $r['nama_pemilik'] ?></h5>
-
-                                <p class="card-text detail-sapi"><strong style="color:red;">Harga Sapi:</strong> Rp <?= number_format($r['harga_sapi'], 0, ',', '.') ?></p>
-
-                                <hr>
-                                <h6>Detail Umum Sapi:</h6>
-                                <ul class="list-unstyled detail-sapi">
-                                    <?php
-                                    // Loop through all columns of data_sapi, excluding ones already displayed or not relevant
-                                    $excluded_keys = ['id_sapi', 'id_macamSapi', 'foto_sapi', 'harga_sapi', 'jenis_sapi', 'nama_pemilik', 'contact_person'];
-                                    foreach ($r as $key => $val):
-                                        if (!in_array($key, $excluded_keys)):
-                                            // Make keys more readable
-                                            $display_key = ucfirst(str_replace('_', ' ', $key));
-                                    ?>
-                                            <li><strong><?= $display_key ?>:</strong> <?= $val ?></li>
-                                    <?php
-                                        endif;
-                                    endforeach;
-                                    ?>
-                                </ul>
-
-                                <?php
-                                // Fetch additional details only for 'sonok' sapi
-                                if ($jenis_filter == 'sonok'):
-                                    $q = mysqli_query($koneksi, "SELECT * FROM sapiSonok WHERE id_sapi = {$r['id_sapi']}");
-                                    $s = mysqli_fetch_assoc($q);
-                                    if ($s):
-                                ?>
-                                        <hr>
-                                        <h6>Detail Sapi Sonok Khusus:</h6>
-                                        <ul class="list-unstyled detail-sapi">
-                                            <?php
-                                            // Exclude 'id' and 'id_sapi' from general display if they're not meaningful
-                                            foreach ($s as $key => $val) {
-                                                if ($key !== 'id' && $key !== 'id_sapi') {
-                                                    echo "<li><strong>" . ucfirst(str_replace('_', ' ', $key)) . ":</strong> " . $val . "</li>";
-                                                }
-                                            }
-                                            ?>
-                                        </ul>
-
-                                        <?php
-                                        $g1 = mysqli_fetch_assoc(mysqli_query(
-                                            $koneksi,
-                                            "SELECT * FROM generasiSatu WHERE sapiSonok = {$s['id']}"
-                                        ));
-                                        if ($g1):
-                                        ?>
-                                            <div class="generation-box">
-                                                <h6>Generasi 1</h6>
-                                                <ul class="list-unstyled detail-sapi text-start">
-                                                    <?php
-                                                    foreach ($g1 as $key => $val) {
-                                                        if ($key !== 'id' && $key !== 'sapiSonok') {
-                                                            echo "<li><strong>" . ucfirst(str_replace('_', ' ', $key)) . ":</strong> " . $val . "</li>";
-                                                        }
-                                                    }
-                                                    ?>
-                                                </ul>
-                                            </div>
-                                        <?php endif; ?>
-
-                                        <?php
-                                        $g2 = mysqli_fetch_assoc(mysqli_query(
-                                            $koneksi,
-                                            "SELECT * FROM generasiDua WHERE sapiSonok = {$s['id']}"
-                                        ));
-                                        if ($g2):
-                                        ?>
-                                            <div class="generation-box">
-                                                <h6>Generasi 2</h6>
-                                                <ul class="list-unstyled detail-sapi text-start">
-                                                    <?php
-                                                    foreach ($g2 as $key => $val) {
-                                                        if ($key !== 'id' && $key !== 'sapiSonok') {
-                                                            echo "<li><strong>" . ucfirst(str_replace('_', ' ', $key)) . ":</strong> " . $val . "</li>";
-                                                        }
-                                                    }
-                                                    ?>
-                                                </ul>
-                                            </div>
-                                        <?php endif; ?>
-
-                                <?php
-                                    endif;
-                                endif;
-                                ?>
-
-                                <div class="contact-box">
-                                    <strong>Contact Person:</strong> <?= $r['contact_person'] ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div class="col-12">
-                    <p class="text-center">Tidak ada data sapi untuk jenis ini.</p>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

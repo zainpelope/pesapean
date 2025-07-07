@@ -45,7 +45,7 @@
     <!-- ========== FORM SONOK ========== -->
     <div id="sonok" class="form-section">
         <h3>Form Sapi Sonok</h3>
-        <form method="POST" action="../pembeli/data_sapi?jenis=sonok">
+        <form method="POST" action="../pembeli/data_sapi.php?jenis=sonok">
             <?php include '../pembeli/sapi_sonok.php'; ?>
         </form>
     </div>
