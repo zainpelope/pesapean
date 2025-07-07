@@ -1,4 +1,4 @@
-<?php include 'koneksi.php'; ?>
+<?php include '../../koneksi.php'; ?>
 <!DOCTYPE html>
 <html>
 
@@ -45,40 +45,40 @@
     <!-- ========== FORM SONOK ========== -->
     <div id="sonok" class="form-section">
         <h3>Form Sapi Sonok</h3>
-        <form method="POST" action="../pembeli/data_sapi?jenis=sonok">
-            <?php include '../pembeli/sapi_sonok.php'; ?>
+        <form method="POST" action="sonok.php">
+            <?php include '../../pembeli/datasapi/sapi_sonok/sapi_sonok.php'; ?>
         </form>
     </div>
 
     <!-- ========== FORM KERAP ========== -->
     <div id="kerap" class="form-section">
         <h3>Form Sapi Kerap</h3>
-        <form method="POST" action="../pembeli/data_sapi.php?jenis=kerap">
-            <?php include '../pembeli/sapi_kerap.php'; ?>
+        <form method="POST" action="../../pembeli/datasapi/data_sapi.php?jenis=kerap">
+            <?php include '../../pembeli/datasapi/sapi_kerap/sapi_kerap.php'; ?>
         </form>
     </div>
 
     <!-- ========== FORM TANGEH ========== -->
     <div id="tangeh" class="form-section">
         <h3>Form Sapi Tangeh</h3>
-        <form method="POST" action="../pembeli/data_sapi.php?jenis=tangghek">
-            <?php include '../pembeli/sapi_tangghek.php'; ?>
+        <form method="POST" action="tang.php">
+            <?php include '../../pembeli/datasapi/sapi_sonok/sapi_tangghek.php'; ?>
         </form>
     </div>
 
     <!-- ========== FORM TERMAK ========== -->
     <div id="termak" class="form-section">
         <h3>Form Sapi Termak</h3>
-        <form method="POST" action="../pembeli/data_sapi.php?jenis=ternak">
-            <?php include '../pembeli/sapi_ternak.php'; ?>
+        <form method="POST" action="ternak.php">
+            <?php include '../../pembeli/datasapi/sapi_sonok/sapi_ternak.php'; ?>
         </form>
     </div>
 
     <!-- ========== FORM POTONG ========== -->
     <div id="potong" class="form-section">
         <h3>Form Sapi Potong</h3>
-        <form method="POST" action="../pembeli/data_sapi.php?jenis=potong">
-            <?php include '../pembeli/sapi_potong.php'; ?>
+        <form method="POST" action="potong.php">
+            <?php include '../../pembeli/datasapi/sapi_sonok/sapi_potong.php'; ?>
         </form>
     </div>
 
