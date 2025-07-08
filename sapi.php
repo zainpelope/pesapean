@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 break;
 
 
-            case 'Sapi Tangeh':
+            case 'Sapi Tangghek':
                 $tinggi = $_POST['tangeh_tinggi'];
                 $panjang = $_POST['tangeh_panjang'];
                 $dada = $_POST['tangeh_dada'];
@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $jarak = $_POST['tangeh_jarak'];
                 $prestasi = $_POST['tangeh_prestasi'];
                 $kesehatan = $_POST['tangeh_kesehatan'];
-                mysqli_query($koneksi, "INSERT INTO sapiTangeh (id_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan)
+                mysqli_query($koneksi, "INSERT INTO sapiTangghek (id_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan)
                     VALUES ('$id_sapi', '$tinggi', '$panjang', '$dada', '$bobot', '$latihan', '$jarak', '$prestasi', '$kesehatan')");
                 break;
 
@@ -105,11 +105,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     VALUES ('$id_sapi', '$nama', '$berat', '$persentase')");
                 break;
 
-            case 'Sapi Termak':
+            case 'Sapi Ternak':
                 $nama = $_POST['termak_nama'];
                 $kesuburan = $_POST['termak_subur'];
                 $riwayat = $_POST['termak_riwayat'];
-                mysqli_query($koneksi, "INSERT INTO sapiTermak (id_sapi, nama_sapi, kesuburan, riwayat_kesehatan)
+                mysqli_query($koneksi, "INSERT INTO sapiTernak (id_sapi, nama_sapi, kesuburan, riwayat_kesehatan)
                     VALUES ('$id_sapi', '$nama', '$kesuburan', '$riwayat')");
                 break;
         }
@@ -207,8 +207,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <input type="text" name="gen2_jenis_kakek" placeholder="Jenis Kakek Pejantan"><br>
     <input type="text" name="gen2_nenek" placeholder="Nama Nenek Induk"><br>
 `,
-            "Sapi Tangeh": `
-        <h4>Form Sapi Tangeh</h4>
+            "Sapi Tangghek": `
+        <h4>Form Sapi Tangghek</h4>
         <input type="text" name="tangeh_tinggi" placeholder="Tinggi Badan"><br>
         <input type="text" name="tangeh_panjang" placeholder="Panjang Badan"><br>
         <input type="text" name="tangeh_dada" placeholder="Lingkar Dada"><br>
@@ -224,8 +224,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="text" name="potong_berat" placeholder="Berat Badan"><br>
         <input type="text" name="potong_persen" placeholder="Persentase Daging"><br>
     `,
-            "Sapi Termak": `
-        <h4>Form Sapi Termak</h4>
+            "Sapi Ternak": `
+        <h4>Form Sapi Ternak</h4>
         <input type="text" name="termak_nama" placeholder="Nama Sapi"><br>
         <input type="text" name="termak_subur" placeholder="Kesuburan"><br>
         <input type="text" name="termak_riwayat" placeholder="Riwayat Kesehatan"><br>

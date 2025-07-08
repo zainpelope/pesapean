@@ -65,7 +65,7 @@ $result = mysqli_query($koneksi, $query);
 
         <!-- Tombol Tambah Data Sapi -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="../pembeli/form_inputan_sapi.php" class="btn btn-primary">
+            <a href="../sapi.php" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Tambah Data Sapi
             </a>
         </div>
@@ -155,7 +155,7 @@ $result = mysqli_query($koneksi, $query);
                                 }
 
                                 if ($jenis_filter == 'tangghek') {
-                                    $s = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM sapiTangeh WHERE id_sapi = {$r['id_sapi']}"));
+                                    $s = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM sapiTangghek WHERE id_sapi = {$r['id_sapi']}"));
                                     if ($s) {
                                         echo '<hr><h6 class="text-primary">Detail Sapi Tangeh:</h6><ul class="list-unstyled">';
                                         foreach ($s as $k => $v) {
@@ -168,9 +168,9 @@ $result = mysqli_query($koneksi, $query);
                                 }
 
                                 if ($jenis_filter == 'ternak') {
-                                    $s = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM sapiTermak WHERE id_sapi = {$r['id_sapi']}"));
+                                    $s = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM sapiTernak WHERE id_sapi = {$r['id_sapi']}"));
                                     if ($s) {
-                                        echo '<hr><h6 class="text-primary">Detail Sapi Termak:</h6><ul class="list-unstyled">';
+                                        echo '<hr><h6 class="text-primary">Detail Sapi Ternak:</h6><ul class="list-unstyled">';
                                         foreach ($s as $k => $v) {
                                             if ($k !== 'id_sapi') {
                                                 echo "<li><strong>" . ucfirst(str_replace('_', ' ', $k)) . ":</strong> $v</li>";
