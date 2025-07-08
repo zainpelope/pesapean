@@ -378,7 +378,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
     <div class="container mt-4">
 
         <div class="d-flex justify-content-end align-items-center mb-4">
-            <a href="../sapi.php" class="btn btn-primary">
+            <a href="../form_tambah_sapi.php" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i> Tambah Data Sapi
             </a>
         </div>
