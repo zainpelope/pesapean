@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include '../koneksi.php';
 
 if (!isset($_GET['id'])) {
     echo "ID sapi tidak ditemukan.";
@@ -63,7 +63,7 @@ $sapi = mysqli_fetch_assoc($query);
     <div class="container mt-5">
         <div class="detail-box shadow">
             <h3 class="mb-4 text-center">Detail Sapi Lelang</h3>
-            <img src="uploads/<?= htmlspecialchars($sapi['foto_sapi']); ?>" alt="Foto sapi">
+            <img src="../uploads/<?= htmlspecialchars($sapi['foto_sapi']); ?>" alt="Foto sapi">
 
             <div class="mt-4">
                 <p><span class="label">Kategori:</span> <?= htmlspecialchars($sapi['kategori']); ?></p>
@@ -82,7 +82,7 @@ $sapi = mysqli_fetch_assoc($query);
             </div>
 
             <div class="text-center mt-4">
-                <a href="coba.php" class="btn btn-secondary">Kembali ke Daftar</a>
+                <a href="../pembeli/lelang.php" class="btn btn-secondary">Kembali ke Daftar</a>
             </div>
         </div>
     </div>
