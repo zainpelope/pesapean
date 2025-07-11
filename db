@@ -1,14 +1,20 @@
 
--- Tabel users
+CREATE TABLE role (
+    id_role INT PRIMARY KEY AUTO_INCREMENT,
+    nama_role VARCHAR(50) UNIQUE NOT NULL
+);
+
 CREATE TABLE users (
     id_user INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50),
     email VARCHAR(100),
     password VARCHAR(100),
-    role VARCHAR(20),
+    id_role INT, -- Kolom baru untuk foreign key
     createdAt DATETIME,
-    updateAt DATETIME
+    updateAt DATETIME,
+    FOREIGN KEY (id_role) REFERENCES role(id_role) -- Definisi foreign key
 );
+
 
 -- Tabel home
 CREATE TABLE home (

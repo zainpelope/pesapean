@@ -214,13 +214,13 @@ $queryDataSapi = mysqli_query($koneksi, "
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="../pembeli/beranda.php">Pesapean</a>
+                <a href="../penjual/beranda.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="../pembeli/beranda.php">Beranda</a></li>
-                <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
-                <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/beranda.php">Beranda</a></li>
+                <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
+                <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../penjual/lelang.php">Lelang</a></li>
 
             </ul>
             <div class="auth-links">
@@ -231,8 +231,8 @@ $queryDataSapi = mysqli_query($koneksi, "
                     echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
                 } else {
                     // User is not logged in, display Login and Daftar buttons
-                    echo '<a href="../login.php" class="btn btn-primary">Login</a>';
-                    echo '<a href="../register.php" class="btn btn-outline-primary">Daftar</a>';
+                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
+                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>';
                 }
                 ?>
             </div>
@@ -278,7 +278,7 @@ $queryDataSapi = mysqli_query($koneksi, "
                                 Nilai limit: <strong>Rp<?= number_format($sapi['harga_awal']); ?></strong><br>
                                 Uang jaminan: <strong>Rp<?= number_format($sapi['harga_tertinggi']); ?></strong>
                             </p>
-                            <a href="../pembeli/detail.php?id=<?= $sapi['id_sapi']; ?>" class="btn btn-success w-100">Detail</a>
+                            <a href="../penjual/detail.php?id=<?= $sapi['id_sapi']; ?>" class="btn btn-success w-100">Detail</a>
                         </div>
                     </div>
                 <?php endwhile; ?>

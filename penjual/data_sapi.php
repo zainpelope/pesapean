@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 // Mulai sesi (penting untuk mengecek status login)
 session_start();
 
-include '../koneksi.php';
+include '../koneksi.php'; // Pastikan path ini benar untuk koneksi database Anda
 
 $jenis_filter = isset($_GET['jenis']) ? $_GET['jenis'] : 'all';
 
@@ -21,15 +21,26 @@ $jenis_map = [
 
 $query = "SELECT ds.*, ms.name AS jenis_sapi FROM data_sapi ds
           LEFT JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi";
+
 if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
     $id_m = $jenis_map[$jenis_filter];
-    // Using prepared statements to prevent SQL injection
+    // Menggunakan prepared statements untuk mencegah SQL injection
     $stmt = mysqli_prepare($koneksi, $query . " WHERE ds.id_macamSapi = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id_m);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $id_m);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+    } else {
+        // Handle error jika prepared statement gagal
+        die("Error prepared statement: " . mysqli_error($koneksi));
+    }
 } else {
     $result = mysqli_query($koneksi, $query);
+}
+
+// Pastikan $result bukan false
+if (!$result) {
+    die("Error query: " . mysqli_error($koneksi));
 }
 ?>
 
@@ -45,19 +56,28 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-pFQhV+Cq+BfS2Z2v2E2L2R2/2N2P2g2B2D2G2H2I2J2K2L2M2N2O2P2Q2R2S2T2U2V2W2X2Y2Z2==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
+        /* Variabel warna global */
         :root {
-
-            --success-color: #28a745;
-            --info-color: #17a2b8;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --white-color: #ffffff;
-            --border-color: #e9ecef;
-            --shadow-color: rgba(0, 0, 0, 0.08);
+            --primary-color: rgb(240, 161, 44);
+            /* Biru utama */
+            --secondary-color: rgb(48, 52, 56);
+            /* Hijau */
+            --tertiary-color: #6c757d;
+            /* Abu-abu */
+            --dark-color: #333;
+            /* Warna gelap untuk navbar */
+            --dark-text: #212529;
+            --light-bg: #f8f9fa;
+            --white-bg: #ffffff;
+            --border-color: #dee2e6;
+            --box-shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --border-radius-sm: 8px;
+            --border-radius-md: 10px;
+            --border-radius-lg: 12px;
         }
 
+        /* Styling Navbar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -78,7 +98,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
 
         .navbar .logo a:hover {
             color: #0056b3;
-            /* Darker primary for hover */
+            /* Primary color sedikit lebih gelap saat hover */
         }
 
         .nav-links {
@@ -133,8 +153,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             color: var(--white-color);
         }
 
-
-        /* Filter Buttons */
+        /* Filter Buttons (Tombol jenis sapi) */
         .btn-filter {
             margin: 0.5rem;
             padding: 0.75rem 1.5rem;
@@ -159,14 +178,64 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
         }
 
+        /* Penempatan tombol "Tambah Data Sapi" */
+        .data-sapi-actions {
+            display: flex;
+            justify-content: flex-start;
+            /* Menggeser tombol ke kiri */
+            align-items: center;
+            margin-bottom: 2.5rem;
+            /* Tambah jarak bawah */
+            padding-right: 15px;
+            /* Sesuaikan dengan padding container */
+            padding-left: 15px;
+        }
+
+        /* Styling tombol "Tambah Data Sapi" */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: var(--white-color);
+            padding: 0.75rem 1.75rem;
+            /* Sedikit lebih besar */
+            font-size: 1.1rem;
+            /* Ukuran teks lebih besar */
+            font-weight: 600;
+            border-radius: 0.75rem;
+            /* Sudut sedikit lebih membulat */
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25);
+            /* Bayangan lebih jelas */
+            transition: all 0.3s ease;
+            /* Transisi untuk hover */
+            display: inline-flex;
+            /* Agar ikon dan teks sejajar vertikal */
+            align-items: center;
+            /* Sejajarkan ikon dan teks di tengah */
+            gap: 0.75rem;
+            /* Jarak antara ikon dan teks */
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            /* Warna sedikit lebih gelap saat hover */
+            border-color: #0056b3;
+            transform: translateY(-2px);
+            /* Efek naik sedikit saat hover */
+            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.35);
+            /* Bayangan lebih kuat saat hover */
+        }
+
+
         /* Card Styles */
         .custom-card {
             border: none;
             border-radius: 1rem;
             overflow: hidden;
-            box-shadow: 0 8px 20px var(--shadow-color);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            /* Using rgba directly for consistency */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background-color: var(--white-color);
+            background-color: #ffffff;
+            /* Use white directly */
             display: flex;
             flex-direction: column;
         }
@@ -181,8 +250,10 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             padding-top: 75%;
             /* 4:3 Aspect Ratio */
             position: relative;
-            background-color: var(--light-color);
-            border-bottom: 1px solid var(--border-color);
+            background-color: #f8f9fa;
+            /* Use light-bg directly */
+            border-bottom: 1px solid #dee2e6;
+            /* Use border-color directly */
             overflow: hidden;
         }
 
@@ -206,8 +277,10 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: var(--light-color);
-            color: var(--secondary-color);
+            background-color: #f8f9fa;
+            /* Use light-bg directly */
+            color: rgb(48, 52, 56);
+            /* Use secondary-color directly */
             font-size: 1.5rem;
             text-align: center;
         }
@@ -226,14 +299,16 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             font-family: 'Montserrat', sans-serif;
             font-size: 1.4rem;
             font-weight: 700;
-            color: var(--dark-color);
+            color: #333;
+            /* Use dark-color directly */
             margin-bottom: 0.5rem;
         }
 
         .price-tag {
             font-size: 1.3rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: rgb(240, 161, 44);
+            /* Use primary-color directly */
         }
 
         .detail-list {
@@ -244,7 +319,8 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
         .detail-list li {
             font-size: 0.95rem;
             line-height: 1.8;
-            border-bottom: 1px dashed var(--border-color);
+            border-bottom: 1px dashed #dee2e6;
+            /* Use border-color directly */
             padding: 0.3rem 0;
         }
 
@@ -253,7 +329,8 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
         }
 
         .detail-list strong {
-            color: var(--primary-color);
+            color: rgb(240, 161, 44);
+            /* Use primary-color directly */
         }
 
         .generation-box {
@@ -282,14 +359,20 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
         }
 
         .card-footer {
-            background-color: var(--white-color);
-            border-top: 1px solid var(--border-color);
+            background-color: #ffffff;
+            /* Use white-color directly */
+            border-top: 1px solid #dee2e6;
+            /* Use border-color directly */
             padding: 1rem 1.5rem;
+            display: flex;
+            /* Make footer a flex container */
+            justify-content: space-between;
+            /* Space out items */
+            gap: 10px;
+            /* Gap between buttons */
         }
 
-        .card-footer .btn-success {
-            background-color: var(--success-color);
-            border-color: var(--success-color);
+        .card-footer .btn {
             font-weight: 600;
             padding: 0.75rem;
             border-radius: 0.5rem;
@@ -298,6 +381,15 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             justify-content: center;
             gap: 0.5rem;
             transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+            flex: 1;
+            /* Allow buttons to grow and shrink */
+        }
+
+        .card-footer .btn-success {
+            background-color: #28a745;
+            /* Green for WhatsApp */
+            border-color: #28a745;
+            color: #fff;
         }
 
         .card-footer .btn-success:hover {
@@ -306,6 +398,33 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             transform: translateY(-2px);
         }
 
+        .card-footer .btn-info {
+            background-color: #17a2b8;
+            /* Blue for Edit */
+            border-color: #17a2b8;
+            color: #fff;
+        }
+
+        .card-footer .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+            transform: translateY(-2px);
+        }
+
+        .card-footer .btn-danger {
+            background-color: #dc3545;
+            /* Red for Delete */
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+        .card-footer .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            transform: translateY(-2px);
+        }
+
+        /* Penyesuaian padding container */
         .text-center.mt-3 {
             padding-top: 1.5rem;
             padding-bottom: 1rem;
@@ -320,7 +439,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
         @media (max-width: 991.98px) {
             .nav-links {
                 display: none;
-                /* Hide nav links on smaller screens for now, consider a toggler */
+                /* Sembunyikan link nav di layar kecil, pertimbangkan toggler */
             }
 
             .navbar {
@@ -329,14 +448,24 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
 
             .auth-links {
                 margin-left: auto;
-                /* Push login button to the right */
+                /* Dorong tombol login ke kanan */
             }
 
             .btn-filter {
                 display: block;
                 width: calc(100% - 1rem);
-                /* Full width minus margin */
+                /* Lebar penuh dikurangi margin */
                 margin: 0.5rem auto;
+            }
+
+            .data-sapi-actions {
+                justify-content: center;
+                /* Di tengah untuk mobile */
+            }
+
+            .btn-primary {
+                width: 100%;
+                /* Tombol tambah sapi jadi full width di mobile */
             }
         }
 
@@ -359,6 +488,8 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
             }
 
             .card-footer {
+                flex-direction: column;
+                /* Stack buttons vertically on small screens */
                 padding: 0.75rem 1rem;
             }
         }
@@ -370,22 +501,22 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="../pembeli/beranda.php">Pesapean</a>
+                <a href="../penjual/beranda.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="../pembeli/beranda.php">Beranda</a></li>
-                <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
-                <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/beranda.php">Beranda</a></li>
+                <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
+                <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../penjual/lelang.php">Lelang</a></li>
             </ul>
             <div class="auth-links">
                 <?php
-                // Check if the user is logged in
+                // Cek apakah pengguna sudah login
                 if (isset($_SESSION['id_user'])) {
-                    // User is logged in, display Profile button
+                    // Pengguna sudah login, tampilkan tombol Profil
                     echo '<a href="../profile.php" class="btn btn-primary">Profile</a>';
                 } else {
-                    // User is not logged in, display Login and Daftar buttons
+                    // Pengguna belum login, tampilkan tombol Login dan Daftar
                     echo '<a href="../login.php" class="btn btn-primary">Login</a>';
                     echo '<a href="../register.php" class="btn btn-outline-primary">Daftar</a>';
                 }
@@ -407,6 +538,12 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
 
     <div class="container mt-4">
 
+        <div class="data-sapi-actions">
+            <a href="../penjual/form_tambah_sapi.php" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i> Tambah Data Sapi
+            </a>
+        </div>
+
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             <?php if (mysqli_num_rows($result) > 0): ?>
                 <?php while ($r = mysqli_fetch_assoc($result)): ?>
@@ -414,7 +551,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                         <div class="card h-100 shadow-sm custom-card">
                             <div class="card-img-top-container">
                                 <?php if (!empty($r['foto_sapi']) && file_exists("../uploads/{$r['foto_sapi']}")): ?>
-                                    <img src="../uploads/<?= htmlspecialchars($r['foto_sapi']) ?>" class="card-img-top" alt="Foto Sapi <?= htmlspecialchars($r['jenis_sapi']) ?>">
+                                    <img src="../uploads/<?= htmlspecialchars($r['foto_sapi']) ?>" class="card-img-top" alt="Foto Sapi <?= htmlspecialchars($r['jenis_sapi'] ?? '') ?>">
                                 <?php else: ?>
                                     <div class="no-image-placeholder">
                                         <i class="fas fa-image"></i><span>Tidak ada foto</span>
@@ -435,7 +572,6 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                     foreach ($r as $key => $val):
                                         if (!in_array($key, $excluded_keys)):
                                             $display_key = ucfirst(str_replace('_', ' ', $key));
-                                            // FIX: Use null coalescing operator to handle null values
                                             echo "<li><strong>" . htmlspecialchars($display_key) . ":</strong> " . htmlspecialchars($val ?? '') . "</li>";
                                         endif;
                                     endforeach;
@@ -443,7 +579,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                 </ul>
 
                                 <?php
-                                // Fetch and display specific details based on filter
+                                // Mengambil dan menampilkan detail spesifik berdasarkan filter
                                 $detail_tables = [
                                     'sonok' => 'sapiSonok',
                                     'kerap' => 'sapiKerap',
@@ -459,17 +595,16 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
 
                                     if ($s_detail) {
                                         $display_name = ucfirst($jenis_filter);
-                                        if ($jenis_filter == 'tangghek') $display_name = 'Tangeh'; // Special case for "Tangeh"
+                                        if ($jenis_filter == 'tangghek') $display_name = 'Tangeh'; // Kasus khusus untuk "Tangeh"
                                         echo '<hr><h6 class="text-primary">Detail Sapi ' . $display_name . ':</h6><ul class="list-unstyled">';
                                         foreach ($s_detail as $k => $v) {
-                                            if ($k !== 'id' && $k !== 'id_sapi' && $k !== 'sapiSonok') { // 'sapiSonok' is only relevant for generation tables
-                                                // FIX: Use null coalescing operator to handle null values
+                                            if ($k !== 'id' && $k !== 'id_sapi' && ($jenis_filter !== 'sonok' || $k !== 'sapiSonok')) {
                                                 echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
                                             }
                                         }
                                         echo '</ul>';
 
-                                        // For Sapi Sonok, display generations
+                                        // Untuk Sapi Sonok, tampilkan generasi
                                         if ($jenis_filter == 'sonok') {
                                             $g1_result = mysqli_query($koneksi, "SELECT * FROM generasiSatu WHERE sapiSonok = {$s_detail['id']}");
                                             $g1 = mysqli_fetch_assoc($g1_result);
@@ -477,7 +612,6 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                                 echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-success">Generasi 1</h6><ul class="list-unstyled">';
                                                 foreach ($g1 as $k => $v) {
                                                     if ($k !== 'id' && $k !== 'sapiSonok') {
-                                                        // FIX: Use null coalescing operator to handle null values
                                                         echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
                                                     }
                                                 }
@@ -490,7 +624,6 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                                 echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-info">Generasi 2</h6><ul class="list-unstyled">';
                                                 foreach ($g2 as $k => $v) {
                                                     if ($k !== 'id' && $k !== 'sapiSonok') {
-                                                        // FIX: Use null coalescing operator to handle null values
                                                         echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
                                                     }
                                                 }
@@ -509,8 +642,14 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                     $wa = '62' . substr($wa, 1);
                                 }
                                 ?>
-                                <a href="https://wa.me/<?= htmlspecialchars($wa) ?>" target="_blank" class="btn btn-success w-100">
-                                    <i class="fab fa-whatsapp me-2"></i> Chat pembeli
+                                <a href="https://wa.me/<?= htmlspecialchars($wa) ?>" target="_blank" class="btn btn-success">
+                                    <i class="fab fa-whatsapp me-2"></i> Chat Penjual
+                                </a>
+                                <a href="edit_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-info">
+                                    <i class="fas fa-edit me-2"></i> Edit
+                                </a>
+                                <a href="delete_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data sapi ini?');">
+                                    <i class="fas fa-trash-alt me-2"></i> Hapus
                                 </a>
                             </div>
                         </div>

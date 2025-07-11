@@ -1,0 +1,327 @@
+/* global_map_styles.css */
+
+/* Gaya untuk Navigasi Sekunder (Pastikan setiap halaman menggunakannya) */
+.secondary-navbar {
+    background-color: #f8f8f8;
+    padding: 12px 0;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 40px; /* Jarak lebih besar */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* Untuk responsif */
+}
+
+.secondary-navbar a {
+    color: #555;
+    text-decoration: none;
+    padding: 10px 20px; /* Padding lebih besar */
+    margin: 0 10px;
+    border-radius: 8px; /* Sudut lebih membulat */
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    font-weight: 600;
+    font-size: 1.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Jarak antara ikon dan teks jika ada */
+}
+
+.secondary-navbar a:hover {
+    background-color: #e9ecef; /* Warna hover yang lebih lembut */
+    color: #333;
+    transform: translateY(-2px); /* Efek sedikit naik */
+}
+
+.secondary-navbar a.active {
+    background-color: #007bff;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2); /* Bayangan untuk yang aktif */
+    pointer-events: none;
+}
+
+/* Gaya untuk Container Utama */
+.container {
+    max-width: 1000px; /* Lebar maksimum lebih besar */
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 12px; /* Sudut lebih membulat */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Bayangan lebih dramatis */
+    text-align: center; /* Memusatkan semua konten di dalamnya */
+    transition: all 0.3s ease;
+}
+
+/* Gaya untuk Judul Bagian */
+.section-title {
+    font-size: 2.5em; /* Ukuran font lebih besar */
+    color: #212529; /* Warna teks lebih gelap */
+    margin-bottom: 35px;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 80px; /* Garis bawah lebih panjang */
+    height: 5px; /* Garis bawah lebih tebal */
+    background-color: #007bff;
+    border-radius: 3px;
+}
+
+/* Gaya untuk pembungkus konten di dalam container (misal: tabel, peta, form) */
+.content-wrapper {
+    background-color: #f8f9fa; /* Latar belakang lebih terang untuk konten */
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 25px; /* Padding lebih besar */
+    margin-top: 30px; /* Jarak dari judul */
+    box-shadow: inset 0 1px 5px rgba(0,0,0,0.08); /* Bayangan dalam */
+    text-align: center; /* Memastikan data di tengah jika tidak menggunakan display flex/grid */
+    overflow-x: auto; /* Untuk tabel yang lebar */
+}
+
+/* Gaya untuk tabel data (jika ada di halaman populasi atau data sapi) */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto; /* Pusatkan tabel */
+    font-size: 0.95em;
+    color: #333;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #dee2e6;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.data-table tbody tr:hover {
+    background-color: #e6f7ff; /* Hover effect */
+}
+
+/* Gaya untuk tombol (jika ada) */
+.btn {
+    display: inline-block;
+    padding: 12px 28px; /* Padding lebih besar */
+    border: none;
+    border-radius: 8px; /* Sudut lebih membulat */
+    font-size: 1.05em;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    margin: 8px; /* Jarak antar tombol */
+    letter-spacing: 0.5px; /* Sedikit spasi huruf */
+}
+
+.btn-secondary { /* Contoh untuk tombol 'Lihat Rute' */
+    background-color: #28a745; /* Hijau yang lebih cerah */
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #218838;
+    transform: translateY(-3px); /* Efek hover lebih menonjol */
+    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-tertiary { /* Contoh untuk tombol 'Buka di Google Maps' */
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.btn-tertiary:hover {
+    background-color: #5a6268;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(108, 117, 125, 0.3);
+}
+
+
+/* Gaya khusus untuk form (dari rute_style.css sebelumnya) */
+.form-card {
+    background-color: #fff; /* Latar belakang form putih */
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Bayangan lebih menonjol */
+}
+
+.route-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px; /* Jarak antar elemen form */
+    justify-content: center;
+    align-items: flex-end; /* Pusatkan secara vertikal juga */
+}
+
+.form-group {
+    flex: 1;
+    min-width: 280px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 700; /* Lebih tebal */
+    color: #444;
+    font-size: 1em;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 14px 18px; /* Padding lebih besar */
+    border: 1px solid #ced4da; /* Warna border yang lebih halus */
+    border-radius: 8px; /* Sudut lebih membulat */
+    font-size: 1.05em;
+    color: #333;
+    background-color: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007bff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-5.4H18.4c-6.5%200-12.2%203.2-15.6%208.1-3.4%204.9-3.4%2011.1%200%2016l128%20128c3.4%203.4%208%205.4%2013.2%205.4s9.8-2%2013.2-5.4l128-128c3.4-4.9%203.4-11.1%200-16z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 18px center; /* Posisi panah lebih baik */
+    background-size: 14px auto; /* Ukuran panah lebih besar */
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.3); /* Bayangan fokus lebih menonjol */
+    outline: none;
+}
+
+/* Gaya untuk info rute (dari rute_style.css sebelumnya) */
+.route-info-card {
+    background-color: #eaf6ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 10px;
+    padding: 30px;
+    margin-top: 30px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+.route-info-card h3 {
+    color: #0056b3;
+    font-size: 2em; /* Lebih besar */
+    margin-bottom: 20px;
+}
+
+.route-info-card .cow-name {
+    color: #007bff;
+    font-weight: 700;
+}
+
+.route-info-card p {
+    color: #444;
+    font-size: 1.1em; /* Lebih besar */
+    line-height: 1.7;
+    margin-bottom: 25px;
+}
+
+.route-info-card .fallback-text {
+    margin-top: 30px;
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Gaya untuk pesan informasi (jika tidak ada data) */
+.info-message {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 30px;
+    color: #856404;
+    font-size: 1.15em;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.15);
+    font-weight: 500;
+}
+
+
+/* Responsif Dasar */
+@media (max-width: 992px) {
+    .container {
+        margin: 30px auto;
+        padding: 25px;
+        max-width: 90%;
+    }
+
+    .section-title {
+        font-size: 2em;
+    }
+
+    .secondary-navbar a {
+        margin: 0 8px;
+        padding: 8px 15px;
+        font-size: 1em;
+    }
+
+    .route-form {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+        font-size: 1.8em;
+        margin-bottom: 25px;
+    }
+
+    .secondary-navbar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 0;
+    }
+
+    .secondary-navbar a {
+        margin: 0;
+        width: 80%;
+        text-align: center;
+        justify-content: center; /* Pusatkan konten link */
+    }
+
+    .form-card, .route-info-card, .info-message {
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.95em;
+        margin: 5px;
+    }
+}

@@ -1,6 +1,6 @@
 <?php
 
-include 'koneksi.php'; // Memasukkan file koneksi database Anda
+include '../koneksi.php'; // Memasukkan file koneksi database Anda
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $longitude = $_POST['longitude'];
 
     // Lokasi upload file foto sapi
-    $target_dir = "uploads/";
+    $target_dir = "../uploads/";
     $target_file = $target_dir . basename($foto_sapi);
 
     // Pastikan direktori 'uploads/' ada, jika tidak, buat
@@ -178,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     break;
             }
 
-            echo "<div class='alert alert-success' role='alert'>Data sapi berhasil disimpan ke semua tabel.</div>";
+            header("Location: ../penjual/data_sapi.php");
         } else {
             echo "<div class='alert alert-danger' role='alert'>Gagal menyimpan data sapi utama: " . mysqli_error($koneksi) . "</div>";
         }
@@ -315,7 +315,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div id="formJenis"></div>
             <button type="submit" class="btn btn-primary btn-block">Simpan</button>
-            <a href="pembeli/data_sapi.php?jenis=all" class="btn btn-secondary btn-block">Kembali</a>
+            <a href="../penjual/data_sapi.php?jenis=all" class="btn btn-secondary btn-block">Kembali</a>
         </form>
     </div>
 

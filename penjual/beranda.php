@@ -91,13 +91,13 @@ if ($koneksi) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="../pembeli/beranda.php">Pesapean</a>
+                <a href="../penjual/beranda.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="../pembeli/beranda.php">Beranda</a></li>
-                <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
-                <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/beranda.php">Beranda</a></li>
+                <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
+                <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../penjual/lelang.php">Lelang</a></li>
             </ul>
             <div class="auth-links">
                 <?php if (isset($_SESSION['id_user'])): ?>
