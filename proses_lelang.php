@@ -24,7 +24,7 @@ if (isset($_POST['submit'])) {
     ");
 
     if ($insert) {
-        echo "<script>alert('Lelang berhasil disimpan!'); window.location='coba.php';</script>";
+        echo "<script>alert('Lelang berhasil disimpan!'); window.location='pembeli/lelang.php';</script>";
     } else {
         echo "Gagal: " . mysqli_error($koneksi);
     }

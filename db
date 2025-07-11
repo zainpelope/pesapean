@@ -174,3 +174,7 @@ CREATE TABLE generasiDua (
     updatedAt DATETIME,
     FOREIGN KEY (sapiSonok) REFERENCES sapiSonok(id)
 );
+
+
+ALTER TABLE data_sapi ADD latitude VARCHAR(50);
+ALTER TABLE data_sapi ADD longitude VARCHAR(50);

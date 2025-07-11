@@ -1,12 +1,29 @@
 <?php
 
-include 'koneksi.php';
+// koneksi.php (Contoh isi file koneksi.php)
+// Pastikan file ini ada di direktori yang sama dengan tambah_sapi.php
+/*
+<?php
+$host = "localhost";
+$username = "root"; // Ganti dengan username database Anda
+$password = "";     // Ganti dengan password database Anda
+$database = "nama_database_anda"; // Ganti dengan nama database Anda
+
+$koneksi = mysqli_connect($host, $username, $password, $database);
+
+if (!$koneksi) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
+}
+?>
+*/
+
+include 'koneksi.php'; // Memasukkan file koneksi database Anda
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Ambil input utama
+    // Ambil input utama dari form
     $id_macamSapi = $_POST['id_macamSapi'];
     $macam_nama = $_POST['macam_nama'];
     $foto_sapi = $_FILES['foto_sapi']['name'];
@@ -17,125 +34,145 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_pemilik = $_POST['email_pemilik'];
     $createdAt = date('Y-m-d H:i:s');
     $updatedAt = date('Y-m-d H:i:s');
+    // Ambil latitude dan longitude dari input manual
+    $latitude = $_POST['latitude'];
+    $longitude = $_POST['longitude'];
 
-    // Upload file
+    // Lokasi upload file foto sapi
     $target_dir = "uploads/";
     $target_file = $target_dir . basename($foto_sapi);
-    // Ensure the uploads directory exists
+
+    // Pastikan direktori 'uploads/' ada, jika tidak, buat
     if (!is_dir($target_dir)) {
-        mkdir($target_dir, 0777, true);
+        mkdir($target_dir, 0777, true); // 0777 memberikan hak akses penuh
     }
-    move_uploaded_file($_FILES["foto_sapi"]["tmp_name"], $target_file);
 
-    // Simpan ke data_sapi
-    // Using prepared statements to prevent SQL injection
-    $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = mysqli_prepare($koneksi, $query);
-    mysqli_stmt_bind_param($stmt, "isdssssss", $id_macamSapi, $foto_sapi, $harga_sapi, $nama_pemilik, $alamat_pemilik, $nomor_pemilik, $email_pemilik, $createdAt, $updatedAt);
+    // Pindahkan file yang diupload ke direktori target
+    if (move_uploaded_file($_FILES["foto_sapi"]["tmp_name"], $target_file)) {
+        // Query untuk menyimpan data ke tabel `data_sapi`
+        // Menggunakan prepared statements untuk mencegah SQL injection
+        $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt, latitude, longitude)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = mysqli_prepare($koneksi, $query);
 
-    if (mysqli_stmt_execute($stmt)) {
-        $id_sapi = mysqli_insert_id($koneksi);
+        // Bind parameter ke statement
+        // 'isdssssssdd' => i=integer, s=string, d=double (untuk float/decimal)
+        mysqli_stmt_bind_param($stmt, "isdssssssdd", $id_macamSapi, $foto_sapi, $harga_sapi, $nama_pemilik, $alamat_pemilik, $nomor_pemilik, $email_pemilik, $createdAt, $updatedAt, $latitude, $longitude);
 
-        // Simpan ke tabel sesuai jenis
-        switch ($macam_nama) {
-            case 'Sapi Kerap':
-                $nama = $_POST['kerap_nama'];
-                $fisik = $_POST['kerap_fisik'];
-                $lari = $_POST['kerap_lari'];
-                $penghargaan = $_POST['kerap_penghargaan'];
-                $queryKerap = "INSERT INTO sapiKerap (id_sapi, nama_sapi, ketahanan_fisik, kecepatan_lari, penghargaan) VALUES (?, ?, ?, ?, ?)";
-                $stmtKerap = mysqli_prepare($koneksi, $queryKerap);
-                mysqli_stmt_bind_param($stmtKerap, "issss", $id_sapi, $nama, $fisik, $lari, $penghargaan);
-                mysqli_stmt_execute($stmtKerap);
-                break;
+        if (mysqli_stmt_execute($stmt)) {
+            $id_sapi = mysqli_insert_id($koneksi); // Dapatkan ID sapi yang baru dimasukkan
 
-            case 'Sapi Sonok':
-                $nama = $_POST['sonok_nama'];
-                $umur = $_POST['sonok_umur'];
-                $dada = $_POST['sonok_dada'];
-                $panjang = $_POST['sonok_panjang'];
-                $tinggi_pundak = $_POST['sonok_tinggi_pundak'];
-                $tinggi_punggung = $_POST['sonok_tinggi_punggung'];
-                $wajah = $_POST['sonok_wajah'];
-                $punggul = $_POST['sonok_punggul'];
-                $dada_lebar = $_POST['sonok_dada_lebar'];
-                $kaki = $_POST['sonok_kaki'];
-                $kesehatan = $_POST['sonok_kesehatan'];
+            // Logic untuk menyimpan data ke tabel spesifik berdasarkan jenis sapi
+            switch ($macam_nama) {
+                case 'Sapi Kerap':
+                    $nama = $_POST['kerap_nama'];
+                    $fisik = $_POST['kerap_fisik'];
+                    $lari = $_POST['kerap_lari'];
+                    $penghargaan = $_POST['kerap_penghargaan'];
+                    $queryKerap = "INSERT INTO sapiKerap (id_sapi, nama_sapi, ketahanan_fisik, kecepatan_lari, penghargaan) VALUES (?, ?, ?, ?, ?)";
+                    $stmtKerap = mysqli_prepare($koneksi, $queryKerap);
+                    mysqli_stmt_bind_param($stmtKerap, "issss", $id_sapi, $nama, $fisik, $lari, $penghargaan);
+                    mysqli_stmt_execute($stmtKerap);
+                    mysqli_stmt_close($stmtKerap);
+                    break;
 
-                $querySonok = "INSERT INTO sapiSonok (id_sapi, nama_sapi, umur, lingkar_dada, panjang_badan, tinggi_pundak, tinggi_punggung, panjang_wajah, lebar_punggul, lebar_dada, tinggi_kaki, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $stmtSonok = mysqli_prepare($koneksi, $querySonok);
-                mysqli_stmt_bind_param($stmtSonok, "isssssssssss", $id_sapi, $nama, $umur, $dada, $panjang, $tinggi_pundak, $tinggi_punggung, $wajah, $punggul, $dada_lebar, $kaki, $kesehatan);
-                mysqli_stmt_execute($stmtSonok);
-                $id_sapiSonok = mysqli_insert_id($koneksi);
+                case 'Sapi Sonok':
+                    $nama = $_POST['sonok_nama'];
+                    $umur = $_POST['sonok_umur'];
+                    $dada = $_POST['sonok_dada'];
+                    $panjang = $_POST['sonok_panjang'];
+                    $tinggi_pundak = $_POST['sonok_tinggi_pundak'];
+                    $tinggi_punggung = $_POST['sonok_tinggi_punggung'];
+                    $wajah = $_POST['sonok_wajah'];
+                    $punggul = $_POST['sonok_punggul'];
+                    $dada_lebar = $_POST['sonok_dada_lebar'];
+                    $kaki = $_POST['sonok_kaki'];
+                    $kesehatan = $_POST['sonok_kesehatan'];
 
-                $gen1_pejantan = $_POST['gen1_pejantan'];
-                $gen1_jenis_pejantan = $_POST['gen1_jenis_pejantan'];
-                $gen1_induk = $_POST['gen1_induk'];
-                $gen1_jenis_induk = $_POST['gen1_jenis_induk'];
-                $gen1_kakek = $_POST['gen1_kakek'];
-                $updatedAt = date('Y-m-d H:i:s');
+                    $querySonok = "INSERT INTO sapiSonok (id_sapi, nama_sapi, umur, lingkar_dada, panjang_badan, tinggi_pundak, tinggi_punggung, panjang_wajah, lebar_punggul, lebar_dada, tinggi_kaki, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $stmtSonok = mysqli_prepare($koneksi, $querySonok);
+                    mysqli_stmt_bind_param($stmtSonok, "isssssssssss", $id_sapi, $nama, $umur, $dada, $panjang, $tinggi_pundak, $tinggi_punggung, $wajah, $punggul, $dada_lebar, $kaki, $kesehatan);
+                    mysqli_stmt_execute($stmtSonok);
+                    $id_sapiSonok = mysqli_insert_id($koneksi); // ID untuk tabel sonok
+                    mysqli_stmt_close($stmtSonok);
 
-                $queryGen1 = "INSERT INTO generasiSatu (sapiSonok, namaPejantanGenerasiSatu, jenisPejantanGenerasiSatu, namaIndukGenerasiSatu, jenisIndukGenerasiSatu, namaKakekPejantanGenerasiSatu, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                $stmtGen1 = mysqli_prepare($koneksi, $queryGen1);
-                mysqli_stmt_bind_param($stmtGen1, "issssss", $id_sapiSonok, $gen1_pejantan, $gen1_jenis_pejantan, $gen1_induk, $gen1_jenis_induk, $gen1_kakek, $updatedAt);
-                mysqli_stmt_execute($stmtGen1);
+                    // Generasi Satu
+                    $gen1_pejantan = $_POST['gen1_pejantan'];
+                    $gen1_jenis_pejantan = $_POST['gen1_jenis_pejantan'];
+                    $gen1_induk = $_POST['gen1_induk'];
+                    $gen1_jenis_induk = $_POST['gen1_jenis_induk'];
+                    $gen1_kakek = $_POST['gen1_kakek'];
+                    // updatedAt sudah diambil di atas
 
-                $gen2_pejantan = $_POST['gen2_pejantan'];
-                $gen2_jenis_pejantan = $_POST['gen2_jenis_pejantan'];
-                $gen2_induk = $_POST['gen2_induk'];
-                $gen2_jenis_induk = $_POST['gen2_jenis_induk'];
-                $gen2_jenis_kakek = $_POST['gen2_jenis_kakek'];
-                $gen2_nenek = $_POST['gen2_nenek'];
-                $createdAt = date('Y-m-d H:i:s');
+                    $queryGen1 = "INSERT INTO generasiSatu (sapiSonok, namaPejantanGenerasiSatu, jenisPejantanGenerasiSatu, namaIndukGenerasiSatu, jenisIndukGenerasiSatu, namaKakekPejantanGenerasiSatu, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    $stmtGen1 = mysqli_prepare($koneksi, $queryGen1);
+                    mysqli_stmt_bind_param($stmtGen1, "issssss", $id_sapiSonok, $gen1_pejantan, $gen1_jenis_pejantan, $gen1_induk, $gen1_jenis_induk, $gen1_kakek, $updatedAt);
+                    mysqli_stmt_execute($stmtGen1);
+                    mysqli_stmt_close($stmtGen1);
 
-                $queryGen2 = "INSERT INTO generasiDua (sapiSonok, namaPejantanGenerasiDua, jenisPejantanGenerasiDua, namaIndukGenerasiDua, jenisIndukGenerasiDua, jenisKakekPejantanGenerasiDua, namaNenekIndukGenerasiDua, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $stmtGen2 = mysqli_prepare($koneksi, $queryGen2);
-                mysqli_stmt_bind_param($stmtGen2, "issssssss", $id_sapiSonok, $gen2_pejantan, $gen2_jenis_pejantan, $gen2_induk, $gen2_jenis_induk, $gen2_jenis_kakek, $gen2_nenek, $createdAt, $updatedAt);
-                mysqli_stmt_execute($stmtGen2);
-                break;
+                    // Generasi Dua
+                    $gen2_pejantan = $_POST['gen2_pejantan'];
+                    $gen2_jenis_pejantan = $_POST['gen2_jenis_pejantan'];
+                    $gen2_induk = $_POST['gen2_induk'];
+                    $gen2_jenis_induk = $_POST['gen2_jenis_induk'];
+                    $gen2_jenis_kakek = $_POST['gen2_jenis_kakek'];
+                    $gen2_nenek = $_POST['gen2_nenek'];
+                    // createdAt sudah diambil di atas
 
-            case 'Sapi Tangghek':
-                $tinggi = $_POST['tangeh_tinggi'];
-                $panjang = $_POST['tangeh_panjang'];
-                $dada = $_POST['tangeh_dada'];
-                $bobot = $_POST['tangeh_bobot'];
-                $latihan = $_POST['tangeh_latihan'];
-                $jarak = $_POST['tangeh_jarak'];
-                $prestasi = $_POST['tangeh_prestasi'];
-                $kesehatan = $_POST['tangeh_kesehatan'];
-                $queryTangghek = "INSERT INTO sapiTangghek (id_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $stmtTangghek = mysqli_prepare($koneksi, $queryTangghek);
-                mysqli_stmt_bind_param($stmtTangghek, "issssssss", $id_sapi, $tinggi, $panjang, $dada, $bobot, $latihan, $jarak, $prestasi, $kesehatan);
-                mysqli_stmt_execute($stmtTangghek);
-                break;
+                    $queryGen2 = "INSERT INTO generasiDua (sapiSonok, namaPejantanGenerasiDua, jenisPejantanGenerasiDua, namaIndukGenerasiDua, jenisIndukGenerasiDua, jenisKakekPejantanGenerasiDua, namaNenekIndukGenerasiDua, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $stmtGen2 = mysqli_prepare($koneksi, $queryGen2);
+                    mysqli_stmt_bind_param($stmtGen2, "issssssss", $id_sapiSonok, $gen2_pejantan, $gen2_jenis_pejantan, $gen2_induk, $gen2_jenis_induk, $gen2_jenis_kakek, $gen2_nenek, $createdAt, $updatedAt);
+                    mysqli_stmt_execute($stmtGen2);
+                    mysqli_stmt_close($stmtGen2);
+                    break;
 
-            case 'Sapi Potong':
-                $nama = $_POST['potong_nama'];
-                $berat = $_POST['potong_berat'];
-                $persentase = $_POST['potong_persen'];
-                $queryPotong = "INSERT INTO sapiPotong (id_sapi, nama_sapi, berat_badan, persentase_daging) VALUES (?, ?, ?, ?)";
-                $stmtPotong = mysqli_prepare($koneksi, $queryPotong);
-                mysqli_stmt_bind_param($stmtPotong, "isss", $id_sapi, $nama, $berat, $persentase);
-                mysqli_stmt_execute($stmtPotong);
-                break;
+                case 'Sapi Tangghek':
+                    $tinggi = $_POST['tangeh_tinggi'];
+                    $panjang = $_POST['tangeh_panjang'];
+                    $dada = $_POST['tangeh_dada'];
+                    $bobot = $_POST['tangeh_bobot'];
+                    $latihan = $_POST['tangeh_latihan'];
+                    $jarak = $_POST['tangeh_jarak'];
+                    $prestasi = $_POST['tangeh_prestasi'];
+                    $kesehatan = $_POST['tangeh_kesehatan'];
+                    $queryTangghek = "INSERT INTO sapiTangghek (id_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $stmtTangghek = mysqli_prepare($koneksi, $queryTangghek);
+                    mysqli_stmt_bind_param($stmtTangghek, "issssssss", $id_sapi, $tinggi, $panjang, $dada, $bobot, $latihan, $jarak, $prestasi, $kesehatan);
+                    mysqli_stmt_execute($stmtTangghek);
+                    mysqli_stmt_close($stmtTangghek);
+                    break;
 
-            case 'Sapi Ternak':
-                $nama = $_POST['termak_nama'];
-                $kesuburan = $_POST['termak_subur'];
-                $riwayat = $_POST['termak_riwayat'];
-                $queryTernak = "INSERT INTO sapiTernak (id_sapi, nama_sapi, kesuburan, riwayat_kesehatan) VALUES (?, ?, ?, ?)";
-                $stmtTernak = mysqli_prepare($koneksi, $queryTernak);
-                mysqli_stmt_bind_param($stmtTernak, "isss", $id_sapi, $nama, $kesuburan, $riwayat);
-                mysqli_stmt_execute($stmtTernak);
-                break;
+                case 'Sapi Potong':
+                    $nama = $_POST['potong_nama'];
+                    $berat = $_POST['potong_berat'];
+                    $persentase = $_POST['potong_persen'];
+                    $queryPotong = "INSERT INTO sapiPotong (id_sapi, nama_sapi, berat_badan, persentase_daging) VALUES (?, ?, ?, ?)";
+                    $stmtPotong = mysqli_prepare($koneksi, $queryPotong);
+                    mysqli_stmt_bind_param($stmtPotong, "isss", $id_sapi, $nama, $berat, $persentase);
+                    mysqli_stmt_execute($stmtPotong);
+                    mysqli_stmt_close($stmtPotong);
+                    break;
+
+                case 'Sapi Ternak':
+                    $nama = $_POST['termak_nama'];
+                    $kesuburan = $_POST['termak_subur'];
+                    $riwayat = $_POST['termak_riwayat'];
+                    $queryTernak = "INSERT INTO sapiTernak (id_sapi, nama_sapi, kesuburan, riwayat_kesehatan) VALUES (?, ?, ?, ?)";
+                    $stmtTernak = mysqli_prepare($koneksi, $queryTernak);
+                    mysqli_stmt_bind_param($stmtTernak, "isss", $id_sapi, $nama, $kesuburan, $riwayat);
+                    mysqli_stmt_execute($stmtTernak);
+                    mysqli_stmt_close($stmtTernak);
+                    break;
+            }
+
+            echo "<div class='alert alert-success' role='alert'>Data sapi berhasil disimpan ke semua tabel.</div>";
+        } else {
+            echo "<div class='alert alert-danger' role='alert'>Gagal menyimpan data sapi utama: " . mysqli_error($koneksi) . "</div>";
         }
-
-        echo "<div class='alert alert-success' role='alert'>Data sapi berhasil disimpan ke semua tabel.</div>";
+        mysqli_stmt_close($stmt); // Tutup statement utama
     } else {
-        echo "<div class='alert alert-danger' role='alert'>Gagal: " . mysqli_error($koneksi) . "</div>";
+        echo "<div class='alert alert-danger' role='alert'>Gagal mengupload foto sapi.</div>";
     }
-    mysqli_stmt_close($stmt); // Close the main statement
 }
 ?>
 
@@ -145,6 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <title>Form Tambah Data Sapi</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         body {
             background-color: #f8f9fa;
@@ -188,6 +226,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-color: #0056b3;
         }
     </style>
+
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -202,7 +241,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <select name="id_macamSapi" id="macamSapi" class="form-control" required>
                     <option value="">-- Pilih Jenis Sapi --</option>
                     <?php
-                    $result = mysqli_query($koneksi, "SELECT * FROM macamSapi");
+                    // Pastikan kolom 'name' ada di tabel 'macamSapi'
+                    $result = mysqli_query($koneksi, "SELECT id_macamSapi, name FROM macamSapi");
                     while ($row = mysqli_fetch_assoc($result)) {
                         echo "<option value='{$row['id_macamSapi']}' data-nama='{$row['name']}'>{$row['name']}</option>";
                     }
@@ -241,14 +281,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="email" name="email_pemilik" id="email_pemilik" class="form-control" required>
             </div>
 
-            <div id="formJenis"></div>
+            <div class="form-group">
+                <label for="latitude">Latitude:</label>
+                <input type="text" name="latitude" id="latitude" class="form-control" placeholder="Contoh: -7.2575" required>
+            </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Simpan</button>
+            <div class="form-group">
+                <label for="longitude">Longitude:</label>
+                <input type="text" name="longitude" id="longitude" class="form-control" placeholder="Contoh: 112.7522" required>
+            </div>
+            <div id="formJenis"></div> <button type="submit" class="btn btn-primary btn-block">Simpan</button>
             <a href="pembeli/data_sapi.php?jenis=all" class="btn btn-secondary btn-block">Kembali</a>
         </form>
     </div>
 
     <script>
+        // Objek 'forms' yang berisi template HTML untuk setiap jenis sapi
         const forms = {
             "Sapi Kerap": `
                 <h4>Form Sapi Kerap</h4>
@@ -391,13 +439,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             `
         };
 
+        // Event listener saat jenis sapi berubah
         $('#macamSapi').change(function() {
             const selected = $('#macamSapi option:selected').attr('data-nama');
-            $('#macamNama').val(selected);
-            $('#formJenis').html(forms[selected] || '');
+            $('#macamNama').val(selected); // Perbarui hidden input dengan nama jenis sapi
+            $('#formJenis').html(forms[selected] || ''); // Tampilkan form tambahan berdasarkan jenis sapi
         });
-    </script>
 
+        // Tidak ada inisialisasi peta di sini
+    </script>
 </body>
 
 </html>
