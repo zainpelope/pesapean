@@ -85,19 +85,18 @@ if (isset($_GET['status'])) {
 
         .status-aktif {
             background-color: #28a745;
+            /* Green */
         }
 
-        /* Green */
         .status-lewat {
             background-color: #ffc107;
+            /* Yellow */
         }
 
-        /* Yellow */
         .status-terverifikasi {
             background-color: #007bff;
+            /* Blue */
         }
-
-        /* Blue */
     </style>
 </head>
 

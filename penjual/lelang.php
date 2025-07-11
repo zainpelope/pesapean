@@ -418,7 +418,7 @@ if (!$resultDataSapi) {
             </div>
         </nav>
     </header>
-    <a href="../form_lelang.php">agjh</a>
+    <a href="../form_lelang.php">Tambah Lelang</a>
 
     <div class="container mt-5">
         <div class="row">

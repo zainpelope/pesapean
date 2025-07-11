@@ -99,17 +99,7 @@ $lelang_aktif = ($sapi['status'] == 'Aktif' && strtotime($sapi['batas_waktu']) >
 
             <?php if ($lelang_aktif) : ?>
                 <hr>
-                <h5 class="mt-4">Ikuti Lelang Ini</h5>
-                <form action="proses_penawaran.php" method="POST">
-                    <input type="hidden" name="id_lelang" value="<?= htmlspecialchars($sapi['id_lelang']); ?>">
-                    <input type="hidden" name="id_sapi" value="<?= htmlspecialchars($sapi['id_sapi']); ?>">
-                    <div class="mb-3">
-                        <label for="harga_tawaran" class="form-label">Harga Penawaran Anda:</label>
-                        <input type="number" class="form-control" id="harga_tawaran" name="harga_tawaran" min="<?= $sapi['harga_tertinggi'] + 1; ?>" required>
-                        <small class="form-text text-muted">Masukkan harga lebih tinggi dari Rp<?= number_format($sapi['harga_tertinggi']); ?></small>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Ajukan Penawaran</button>
-                </form>
+
             <?php else : ?>
                 <div class="alert alert-info text-center mt-4">
                     Lelang ini sudah berakhir atau tidak aktif.
