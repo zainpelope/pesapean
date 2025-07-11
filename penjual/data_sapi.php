@@ -7,7 +7,18 @@ error_reporting(E_ALL);
 // Mulai sesi (penting untuk mengecek status login)
 session_start();
 
+// Include koneksi database Anda
 include '../koneksi.php'; // Pastikan path ini benar untuk koneksi database Anda
+
+// --- PENTING: Cek status login dan peran pengguna ---
+if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Penjual') {
+    // Jika tidak login atau bukan penjual, redirect ke halaman login dengan pesan error
+    header("Location: ../auth/login.php?error=Akses tidak diizinkan. Anda harus login sebagai Penjual.");
+    exit();
+}
+
+// Ambil ID user penjual yang sedang login dari sesi
+$id_user_penjual_login = $_SESSION['id_user'];
 
 $jenis_filter = isset($_GET['jenis']) ? $_GET['jenis'] : 'all';
 
@@ -19,24 +30,37 @@ $jenis_map = [
     'potong' => 5,
 ];
 
-$query = "SELECT ds.*, ms.name AS jenis_sapi FROM data_sapi ds
-          LEFT JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi";
+// Query dasar untuk mengambil data sapi yang DIIUPLOAD OLEH PENJUAL YANG SEDANG LOGIN
+$query = "SELECT ds.*, ms.name AS jenis_sapi 
+          FROM data_sapi ds
+          LEFT JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi
+          WHERE ds.id_user_penjual = ?"; // <-- FILTER UTAMA UNTUK KEPEMILIKAN DATA
+
+$stmt = null; // Inisialisasi statement
 
 if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
-    $id_m = $jenis_map[$jenis_filter];
-    // Menggunakan prepared statements untuk mencegah SQL injection
-    $stmt = mysqli_prepare($koneksi, $query . " WHERE ds.id_macamSapi = ?");
+    $id_macam_sapi_filter = $jenis_map[$jenis_filter];
+    // Tambahkan kondisi filter jenis sapi
+    $query .= " AND ds.id_macamSapi = ?";
+    $stmt = mysqli_prepare($koneksi, $query);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "i", $id_m);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-    } else {
-        // Handle error jika prepared statement gagal
-        die("Error prepared statement: " . mysqli_error($koneksi));
+        mysqli_stmt_bind_param($stmt, "ii", $id_user_penjual_login, $id_macam_sapi_filter);
     }
 } else {
-    $result = mysqli_query($koneksi, $query);
+    // Jika filter 'all', hanya filter berdasarkan id_user_penjual
+    $stmt = mysqli_prepare($koneksi, $query);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $id_user_penjual_login);
+    }
 }
+
+// Periksa apakah prepared statement berhasil
+if (!$stmt) {
+    die("Error prepared statement: " . mysqli_error($koneksi));
+}
+
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 
 // Pastikan $result bukan false
 if (!$result) {
@@ -50,11 +74,11 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesapean - Data Sapi</title>
+    <title>Pesapean - Data Sapi Anda</title>
     <link rel="stylesheet" href="../style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-pFQhV+Cq+BfS2Z2v2E2L2R2/2N2P2g2B2D2G2H2I2J2K2L2M2N2O2P2Q2R2S2T2U2V2W2X2Y2Z2==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-pFQhV+Cq+BfS2Z2v2E2L2R2/2N2P2g2B2D2G2H2I2J2K2L2M2N2O2P2Q2R2S2T2U2V2W2X2Y2Z2==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         /* Variabel warna global */
         :root {
@@ -134,7 +158,8 @@ if (!$result) {
 
         .auth-links .btn-primary {
             background-color: var(--primary-color);
-            color: var(--white-color);
+            color: white;
+            /* Changed to direct white for clarity */
             border: none;
         }
 
@@ -150,7 +175,8 @@ if (!$result) {
 
         .auth-links .btn-outline-primary:hover {
             background-color: var(--primary-color);
-            color: var(--white-color);
+            color: white;
+            /* Changed to direct white for clarity */
         }
 
         /* Filter Buttons (Tombol jenis sapi) */
@@ -163,17 +189,17 @@ if (!$result) {
             text-decoration: none;
             border: 1px solid var(--secondary-color);
             color: var(--secondary-color);
-            background-color: var(--white-color);
+            background-color: var(--white-bg);
         }
 
         .btn-filter:hover {
             background-color: var(--secondary-color);
-            color: var(--white-color);
+            color: var(--white-bg);
         }
 
         .btn-filter.active {
             background-color: var(--primary-color);
-            color: var(--white-color);
+            color: var(--white-bg);
             border-color: var(--primary-color);
             box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
         }
@@ -195,7 +221,8 @@ if (!$result) {
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
-            color: var(--white-color);
+            color: white;
+            /* Changed to direct white for clarity */
             padding: 0.75rem 1.75rem;
             /* Sedikit lebih besar */
             font-size: 1.1rem;
@@ -513,12 +540,13 @@ if (!$result) {
                 <?php
                 // Cek apakah pengguna sudah login
                 if (isset($_SESSION['id_user'])) {
-                    // Pengguna sudah login, tampilkan tombol Profil
-                    echo '<a href="../profile.php" class="btn btn-primary">Profile</a>';
+                    // Pengguna sudah login, tampilkan tombol Profil dan Logout
+                    echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
+                    echo '<a href="../logout.php" class="btn btn-danger">Logout</a>'; // Added Logout button
                 } else {
                     // Pengguna belum login, tampilkan tombol Login dan Daftar
-                    echo '<a href="../login.php" class="btn btn-primary">Login</a>';
-                    echo '<a href="../register.php" class="btn btn-outline-primary">Daftar</a>';
+                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
+                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>';
                 }
                 ?>
             </div>
@@ -539,7 +567,7 @@ if (!$result) {
     <div class="container mt-4">
 
         <div class="data-sapi-actions">
-            <a href="../penjual/form_tambah_sapi.php" class="btn btn-primary">
+            <a href="../penjual/tambah_sapi.php" class="btn btn-primary"> <!-- Changed to tambah_sapi.php -->
                 <i class="fas fa-plus-circle me-2"></i> Tambah Data Sapi
             </a>
         </div>
@@ -550,8 +578,8 @@ if (!$result) {
                     <div class="col">
                         <div class="card h-100 shadow-sm custom-card">
                             <div class="card-img-top-container">
-                                <?php if (!empty($r['foto_sapi']) && file_exists("../uploads/{$r['foto_sapi']}")): ?>
-                                    <img src="../uploads/<?= htmlspecialchars($r['foto_sapi']) ?>" class="card-img-top" alt="Foto Sapi <?= htmlspecialchars($r['jenis_sapi'] ?? '') ?>">
+                                <?php if (!empty($r['foto_sapi']) && file_exists("../uploads_sapi/{$r['foto_sapi']}")): ?> <!-- Updated path -->
+                                    <img src="../uploads_sapi/<?= htmlspecialchars($r['foto_sapi']) ?>" class="card-img-top" alt="Foto Sapi <?= htmlspecialchars($r['jenis_sapi'] ?? '') ?>">
                                 <?php else: ?>
                                     <div class="no-image-placeholder">
                                         <i class="fas fa-image"></i><span>Tidak ada foto</span>
@@ -562,13 +590,14 @@ if (!$result) {
                             <div class="card-body">
                                 <h5 class="card-title text-center mb-2"><?= htmlspecialchars($r['jenis_sapi'] ?? '') ?> – <?= htmlspecialchars($r['nama_pemilik'] ?? '') ?></h5>
                                 <p class="card-text text-center price-tag">
-                                    <strong style="color:var(--danger-color);">Harga:</strong> Rp <?= number_format($r['harga_sapi'] ?? 0, 0, ',', '.') ?>
+                                    <strong style="color:var(--primary-color);">Harga:</strong> Rp <?= number_format($r['harga_sapi'] ?? 0, 0, ',', '.') ?>
                                 </p>
                                 <hr class="my-3">
                                 <h6 class="text-primary mb-2">Detail Umum Sapi:</h6>
                                 <ul class="list-unstyled detail-list">
                                     <?php
-                                    $excluded_keys = ['id_sapi', 'id_macamSapi', 'foto_sapi', 'harga_sapi', 'jenis_sapi', 'nama_pemilik', 'contact_person'];
+                                    // Exclude ID, foreign keys, and already displayed fields
+                                    $excluded_keys = ['id_sapi', 'id_macamSapi', 'foto_sapi', 'harga_sapi', 'jenis_sapi', 'nama_pemilik', 'id_user_penjual', 'createdAt', 'updatedAt'];
                                     foreach ($r as $key => $val):
                                         if (!in_array($key, $excluded_keys)):
                                             $display_key = ucfirst(str_replace('_', ' ', $key));
@@ -590,44 +619,67 @@ if (!$result) {
 
                                 if (isset($detail_tables[$jenis_filter])) {
                                     $table_name = $detail_tables[$jenis_filter];
-                                    $q_detail = mysqli_query($koneksi, "SELECT * FROM $table_name WHERE id_sapi = {$r['id_sapi']}");
-                                    $s_detail = mysqli_fetch_assoc($q_detail);
+                                    // Use prepared statement for detail queries as well
+                                    $q_detail_stmt = mysqli_prepare($koneksi, "SELECT * FROM $table_name WHERE id_sapi = ?");
+                                    if ($q_detail_stmt) {
+                                        mysqli_stmt_bind_param($q_detail_stmt, "i", $r['id_sapi']);
+                                        mysqli_stmt_execute($q_detail_stmt);
+                                        $q_detail_result = mysqli_stmt_get_result($q_detail_stmt);
+                                        $s_detail = mysqli_fetch_assoc($q_detail_result);
+                                        mysqli_stmt_close($q_detail_stmt); // Close detail statement
 
-                                    if ($s_detail) {
-                                        $display_name = ucfirst($jenis_filter);
-                                        if ($jenis_filter == 'tangghek') $display_name = 'Tangeh'; // Kasus khusus untuk "Tangeh"
-                                        echo '<hr><h6 class="text-primary">Detail Sapi ' . $display_name . ':</h6><ul class="list-unstyled">';
-                                        foreach ($s_detail as $k => $v) {
-                                            if ($k !== 'id' && $k !== 'id_sapi' && ($jenis_filter !== 'sonok' || $k !== 'sapiSonok')) {
-                                                echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
+                                        if ($s_detail) {
+                                            $display_name = ucfirst($jenis_filter);
+                                            if ($jenis_filter == 'tangghek') $display_name = 'Tangghek'; // Corrected spelling
+                                            echo '<hr><h6 class="text-primary">Detail Sapi ' . $display_name . ':</h6><ul class="list-unstyled">';
+                                            foreach ($s_detail as $k => $v) {
+                                                if ($k !== 'id' && $k !== 'id_sapi' && ($jenis_filter !== 'sonok' || ($k !== 'sapiSonok' && $k !== 'generasiSatu' && $k !== 'generasiDua'))) { // Exclude generation IDs from sonok detail
+                                                    echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
+                                                }
                                             }
-                                        }
-                                        echo '</ul>';
+                                            echo '</ul>';
 
-                                        // Untuk Sapi Sonok, tampilkan generasi
-                                        if ($jenis_filter == 'sonok') {
-                                            $g1_result = mysqli_query($koneksi, "SELECT * FROM generasiSatu WHERE sapiSonok = {$s_detail['id']}");
-                                            $g1 = mysqli_fetch_assoc($g1_result);
-                                            if ($g1) {
-                                                echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-success">Generasi 1</h6><ul class="list-unstyled">';
-                                                foreach ($g1 as $k => $v) {
-                                                    if ($k !== 'id' && $k !== 'sapiSonok') {
-                                                        echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
+                                            // Untuk Sapi Sonok, tampilkan generasi
+                                            if ($jenis_filter == 'sonok') {
+                                                // Generasi Satu
+                                                $g1_stmt = mysqli_prepare($koneksi, "SELECT * FROM generasiSatu WHERE sapiSonok = ?");
+                                                if ($g1_stmt) {
+                                                    mysqli_stmt_bind_param($g1_stmt, "i", $s_detail['id']);
+                                                    mysqli_stmt_execute($g1_stmt);
+                                                    $g1_result = mysqli_stmt_get_result($g1_stmt);
+                                                    $g1 = mysqli_fetch_assoc($g1_result);
+                                                    mysqli_stmt_close($g1_stmt);
+
+                                                    if ($g1) {
+                                                        echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-success">Generasi 1</h6><ul class="list-unstyled">';
+                                                        foreach ($g1 as $k => $v) {
+                                                            if ($k !== 'id' && $k !== 'sapiSonok') {
+                                                                echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
+                                                            }
+                                                        }
+                                                        echo '</ul></div>';
                                                     }
                                                 }
-                                                echo '</ul></div>';
-                                            }
 
-                                            $g2_result = mysqli_query($koneksi, "SELECT * FROM generasiDua WHERE sapiSonok = {$s_detail['id']}");
-                                            $g2 = mysqli_fetch_assoc($g2_result);
-                                            if ($g2) {
-                                                echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-info">Generasi 2</h6><ul class="list-unstyled">';
-                                                foreach ($g2 as $k => $v) {
-                                                    if ($k !== 'id' && $k !== 'sapiSonok') {
-                                                        echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
+                                                // Generasi Dua
+                                                $g2_stmt = mysqli_prepare($koneksi, "SELECT * FROM generasiDua WHERE sapiSonok = ?");
+                                                if ($g2_stmt) {
+                                                    mysqli_stmt_bind_param($g2_stmt, "i", $s_detail['id']);
+                                                    mysqli_stmt_execute($g2_stmt);
+                                                    $g2_result = mysqli_stmt_get_result($g2_stmt);
+                                                    $g2 = mysqli_fetch_assoc($g2_result);
+                                                    mysqli_stmt_close($g2_stmt);
+
+                                                    if ($g2) {
+                                                        echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-info">Generasi 2</h6><ul class="list-unstyled">';
+                                                        foreach ($g2 as $k => $v) {
+                                                            if ($k !== 'id' && $k !== 'sapiSonok') {
+                                                                echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
+                                                            }
+                                                        }
+                                                        echo '</ul></div>';
                                                     }
                                                 }
-                                                echo '</ul></div>';
                                             }
                                         }
                                     }
@@ -637,20 +689,38 @@ if (!$result) {
 
                             <div class="card-footer text-center">
                                 <?php
-                                $wa = preg_replace('/[^0-9]/', '', $r['contact_person'] ?? '');
-                                if (!empty($wa) && substr($wa, 0, 1) === '0') {
-                                    $wa = '62' . substr($wa, 1);
-                                }
+                                // Display buttons only if the logged-in user is the owner of this cow data
+                                if (isset($_SESSION['id_user']) && $_SESSION['id_user'] == $r['id_user_penjual']) {
+                                    $wa_number = preg_replace('/[^0-9]/', '', $r['nomor_pemilik'] ?? ''); // Use nomor_pemilik
+                                    if (!empty($wa_number) && substr($wa_number, 0, 1) === '0') {
+                                        $wa_number = '62' . substr($wa_number, 1);
+                                    }
                                 ?>
-                                <a href="https://wa.me/<?= htmlspecialchars($wa) ?>" target="_blank" class="btn btn-success">
-                                    <i class="fab fa-whatsapp me-2"></i> Chat Penjual
-                                </a>
-                                <a href="edit_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-info">
-                                    <i class="fas fa-edit me-2"></i> Edit
-                                </a>
-                                <a href="delete_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data sapi ini?');">
-                                    <i class="fas fa-trash-alt me-2"></i> Hapus
-                                </a>
+                                    <a href="https://wa.me/<?= htmlspecialchars($wa_number) ?>" class="btn btn-success" target="_blank">
+                                        <i class="fab fa-whatsapp me-2"></i> WhatsApp
+                                    </a>
+                                    <a href="edit_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-info">
+                                        <i class="fas fa-edit me-2"></i> Edit
+                                    </a>
+                                    <a href="delete_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data sapi ini?');">
+                                        <i class="fas fa-trash-alt me-2"></i> Hapus
+                                    </a>
+                                <?php } else { ?>
+                                    <!-- If not the owner, only show WhatsApp button (or hide all action buttons) -->
+                                    <?php
+                                    $wa_number = preg_replace('/[^0-9]/', '', $r['nomor_pemilik'] ?? ''); // Use nomor_pemilik
+                                    if (!empty($wa_number) && substr($wa_number, 0, 1) === '0') {
+                                        $wa_number = '62' . substr($wa_number, 1);
+                                    }
+                                    if (!empty($wa_number)) {
+                                    ?>
+                                        <a href="https://wa.me/<?= htmlspecialchars($wa_number) ?>" class="btn btn-success" target="_blank" style="width: 100%;">
+                                            <i class="fab fa-whatsapp me-2"></i> Hubungi Penjual
+                                        </a>
+                                    <?php } else { ?>
+                                        <span class="text-muted">Tidak ada kontak tersedia.</span>
+                                    <?php } ?>
+                                <?php } ?>
                             </div>
                         </div>
                     </div>
@@ -658,14 +728,14 @@ if (!$result) {
             <?php else: ?>
                 <div class="col-12">
                     <div class="alert alert-info text-center" role="alert">
-                        <i class="fas fa-info-circle me-2"></i> Tidak ada data sapi untuk jenis ini.
+                        <i class="fas fa-info-circle me-2"></i> Tidak ada data sapi untuk jenis ini yang Anda unggah.
                     </div>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <?php include '../footer.php'; ?>
 </body>
 

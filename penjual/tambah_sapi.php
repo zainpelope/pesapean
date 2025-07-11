@@ -1,12 +1,27 @@
 <?php
-
-include '../koneksi.php'; // Memasukkan file koneksi database Anda
+// Enable error reporting for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Start the session (important for checking login status and getting user ID)
+session_start();
+
+// Include your database connection file
+include '../koneksi.php';
+
+// Ensure the user is logged in as a seller
+if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Penjual') {
+    // If not logged in or not a seller, redirect to the login page or display an error message
+    header("Location: ../auth/login.php?error=Anda harus login sebagai Penjual untuk menambah data sapi.");
+    exit();
+}
+
+// Get the ID of the currently logged-in seller from the session
+$id_user_penjual = $_SESSION['id_user'];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Ambil input utama dari form
+    // Get main inputs from the form
     $id_macamSapi = $_POST['id_macamSapi'];
     $macam_nama = $_POST['macam_nama'];
     $foto_sapi = $_FILES['foto_sapi']['name'];
@@ -15,34 +30,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $alamat_pemilik = $_POST['alamat_pemilik'];
     $nomor_pemilik = $_POST['nomor_pemilik'];
     $email_pemilik = $_POST['email_pemilik'];
-    $jenis_kelamin = $_POST['jenis_kelamin']; // Input jenis kelamin BARU
+    $jenis_kelamin = $_POST['jenis_kelamin']; // New gender input
 
     $createdAt = date('Y-m-d H:i:s');
     $updatedAt = date('Y-m-d H:i:s');
-    // Ambil latitude dan longitude dari input manual
+    // Get latitude and longitude from manual input
     $latitude = $_POST['latitude'];
     $longitude = $_POST['longitude'];
 
-    // Lokasi upload file foto sapi
-    $target_dir = "../uploads/";
+    // Upload location for the cow photo
+    // Important: Create a separate 'uploads_sapi' directory for cow images to keep them organized
+    $target_dir = "../uploads_sapi/"; // Changed target directory
     $target_file = $target_dir . basename($foto_sapi);
 
-    // Pastikan direktori 'uploads/' ada, jika tidak, buat
+    // Ensure the 'uploads_sapi/' directory exists, if not, create it
     if (!is_dir($target_dir)) {
-        mkdir($target_dir, 0777, true); // 0777 memberikan hak akses penuh
+        mkdir($target_dir, 0777, true); // 0777 grants full permissions (should be adjusted in production)
     }
 
-    // Pindahkan file yang diupload ke direktori target
+    // Move the uploaded file to the target directory
     if (move_uploaded_file($_FILES["foto_sapi"]["tmp_name"], $target_file)) {
-        // Query untuk menyimpan data ke tabel `data_sapi`
-        // Urutan kolom di sini HARUS SAMA PERSIS dengan urutan di tabel database Anda
-        // Berdasarkan screenshot, jenis_kelamin berada di paling akhir
-        $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt, latitude, longitude, jenis_kelamin)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Query to save data to the `data_sapi` table
+        // **Add the `id_user_penjual` column to the list of columns and bound values**
+        $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt, latitude, longitude, jenis_kelamin, id_user_penjual)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // Add ? for id_user_penjual
         $stmt = mysqli_prepare($koneksi, $query);
 
-        // Bind parameter ke statement
-        // String format "isdssssssdds" berarti:
+        // Bind parameters to the statement
+        // The format string "isdssssssddsi" means:
         // i = id_macamSapi (int)
         // s = foto_sapi (string)
         // d = harga_sapi (double)
@@ -50,14 +65,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // s = alamat_pemilik (string)
         // s = nomor_pemilik (string)
         // s = email_pemilik (string)
-        // s = createdAt (string, karena sudah diformat Y-m-d H:i:s)
-        // s = updatedAt (string, karena sudah diformat Y-m-d H:i:s)
+        // s = createdAt (string)
+        // s = updatedAt (string)
         // d = latitude (double)
         // d = longitude (double)
         // s = jenis_kelamin (string)
+        // i = id_user_penjual (int) <-- NEWLY ADDED
         mysqli_stmt_bind_param(
             $stmt,
-            "isdssssssdds", // <-- STRING BINDING YANG DIPERBAIKI (huruf 's' kecil semua)
+            "isdssssssddsi", // <-- CORRECTED BINDING STRING (Added 'i' at the end)
             $id_macamSapi,
             $foto_sapi,
             $harga_sapi,
@@ -65,17 +81,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $alamat_pemilik,
             $nomor_pemilik,
             $email_pemilik,
-            $createdAt,    // Harus sesuai urutan kolom di tabel Anda
-            $updatedAt,    // Harus sesuai urutan kolom di tabel Anda
+            $createdAt,
+            $updatedAt,
             $latitude,
             $longitude,
-            $jenis_kelamin // Harus sesuai urutan kolom di tabel Anda
+            $jenis_kelamin,
+            $id_user_penjual // <-- Add this parameter
         );
 
         if (mysqli_stmt_execute($stmt)) {
-            $id_sapi = mysqli_insert_id($koneksi); // Dapatkan ID sapi yang baru dimasukkan
+            $id_sapi = mysqli_insert_id($koneksi); // Get the ID of the newly inserted cow
 
-            // Logic untuk menyimpan data ke tabel spesifik berdasarkan jenis sapi
+            // Logic to save data to specific tables based on cow type
+            // Ensure you also insert the correct $id_sapi into these detail tables
             switch ($macam_nama) {
                 case 'Sapi Kerap':
                     $nama = $_POST['kerap_nama'];
@@ -104,18 +122,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     $querySonok = "INSERT INTO sapiSonok (id_sapi, nama_sapi, umur, lingkar_dada, panjang_badan, tinggi_pundak, tinggi_punggung, panjang_wajah, lebar_punggul, lebar_dada, tinggi_kaki, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     $stmtSonok = mysqli_prepare($koneksi, $querySonok);
+                    // Ensure the order and type of parameters match the columns in the sapiSonok table
                     mysqli_stmt_bind_param($stmtSonok, "isssssssssss", $id_sapi, $nama, $umur, $dada, $panjang, $tinggi_pundak, $tinggi_punggung, $wajah, $punggul, $dada_lebar, $kaki, $kesehatan);
                     mysqli_stmt_execute($stmtSonok);
-                    $id_sapiSonok = mysqli_insert_id($koneksi); // ID untuk tabel sonok
+                    $id_sapiSonok = mysqli_insert_id($koneksi); // ID for sonok table
                     mysqli_stmt_close($stmtSonok);
 
-                    // Generasi Satu
+                    // Generation One
                     $gen1_pejantan = $_POST['gen1_pejantan'];
                     $gen1_jenis_pejantan = $_POST['gen1_jenis_pejantan'];
                     $gen1_induk = $_POST['gen1_induk'];
                     $gen1_jenis_induk = $_POST['gen1_jenis_induk'];
                     $gen1_kakek = $_POST['gen1_kakek'];
-                    // updatedAt sudah diambil di atas
+                    // updatedAt is already retrieved above
 
                     $queryGen1 = "INSERT INTO generasiSatu (sapiSonok, namaPejantanGenerasiSatu, jenisPejantanGenerasiSatu, namaIndukGenerasiSatu, jenisIndukGenerasiSatu, namaKakekPejantanGenerasiSatu, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)";
                     $stmtGen1 = mysqli_prepare($koneksi, $queryGen1);
@@ -123,14 +142,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     mysqli_stmt_execute($stmtGen1);
                     mysqli_stmt_close($stmtGen1);
 
-                    // Generasi Dua
+                    // Generation Two
                     $gen2_pejantan = $_POST['gen2_pejantan'];
                     $gen2_jenis_pejantan = $_POST['gen2_jenis_pejantan'];
                     $gen2_induk = $_POST['gen2_induk'];
                     $gen2_jenis_induk = $_POST['gen2_jenis_induk'];
                     $gen2_jenis_kakek = $_POST['gen2_jenis_kakek'];
                     $gen2_nenek = $_POST['gen2_nenek'];
-                    // createdAt sudah diambil di atas
+                    // createdAt is already retrieved above
 
                     $queryGen2 = "INSERT INTO generasiDua (sapiSonok, namaPejantanGenerasiDua, jenisPejantanGenerasiDua, namaIndukGenerasiDua, jenisIndukGenerasiDua, jenisKakekPejantanGenerasiDua, namaNenekIndukGenerasiDua, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     $stmtGen2 = mysqli_prepare($koneksi, $queryGen2);
@@ -178,13 +197,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     break;
             }
 
-            header("Location: ../penjual/data_sapi.php");
+            // Redirect to the seller's cattle data page after successful insertion
+            header("Location: ../penjual/data_sapi.php?jenis=all"); // Or 'data_sapi.php' if the default is to show all seller's cows
+            exit();
         } else {
-            echo "<div class='alert alert-danger' role='alert'>Gagal menyimpan data sapi utama: " . mysqli_error($koneksi) . "</div>";
+            echo "<div class='alert alert-danger' role='alert'>Failed to save main cow data: " . mysqli_error($koneksi) . "</div>";
         }
-        mysqli_stmt_close($stmt); // Tutup statement utama
+        mysqli_stmt_close($stmt); // Close the main statement
     } else {
-        echo "<div class='alert alert-danger' role='alert'>Gagal mengupload foto sapi.</div>";
+        echo "<div class='alert alert-danger' role='alert'>Failed to upload cow photo. Error: " . $_FILES['foto_sapi']['error'] . "</div>";
     }
 }
 ?>
@@ -195,7 +216,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <title>Form Tambah Data Sapi</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
         body {
             background-color: #f8f9fa;
@@ -239,10 +259,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-color: #0056b3;
         }
     </style>
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -254,7 +273,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <select name="id_macamSapi" id="macamSapi" class="form-control" required>
                     <option value="">-- Pilih Jenis Sapi --</option>
                     <?php
-                    // Pastikan kolom 'name' ada di tabel 'macamSapi'
                     $result = mysqli_query($koneksi, "SELECT id_macamSapi, name FROM macamSapi");
                     while ($row = mysqli_fetch_assoc($result)) {
                         echo "<option value='{$row['id_macamSapi']}' data-nama='{$row['name']}'>{$row['name']}</option>";
@@ -462,11 +480,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             `
         };
 
-        // Event listener saat jenis sapi berubah
+        // Event listener when cow type changes
         $('#macamSapi').change(function() {
             const selected = $('#macamSapi option:selected').attr('data-nama');
-            $('#macamNama').val(selected); // Perbarui hidden input dengan nama jenis sapi
-            $('#formJenis').html(forms[selected] || ''); // Tampilkan form tambahan berdasarkan jenis sapi
+            $('#macamNama').val(selected); // Update hidden input with cow type name
+            $('#formJenis').html(forms[selected] || ''); // Display additional form based on cow type
         });
     </script>
 </body>
