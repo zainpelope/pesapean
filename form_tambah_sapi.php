@@ -1,22 +1,5 @@
 <?php
 
-// koneksi.php (Contoh isi file koneksi.php)
-// Pastikan file ini ada di direktori yang sama dengan tambah_sapi.php
-/*
-<?php
-$host = "localhost";
-$username = "root"; // Ganti dengan username database Anda
-$password = "";     // Ganti dengan password database Anda
-$database = "nama_database_anda"; // Ganti dengan nama database Anda
-
-$koneksi = mysqli_connect($host, $username, $password, $database);
-
-if (!$koneksi) {
-    die("Koneksi database gagal: " . mysqli_connect_error());
-}
-?>
-*/
-
 include 'koneksi.php'; // Memasukkan file koneksi database Anda
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -32,6 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $alamat_pemilik = $_POST['alamat_pemilik'];
     $nomor_pemilik = $_POST['nomor_pemilik'];
     $email_pemilik = $_POST['email_pemilik'];
+    $jenis_kelamin = $_POST['jenis_kelamin']; // Input jenis kelamin BARU
+
     $createdAt = date('Y-m-d H:i:s');
     $updatedAt = date('Y-m-d H:i:s');
     // Ambil latitude dan longitude dari input manual
@@ -50,14 +35,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Pindahkan file yang diupload ke direktori target
     if (move_uploaded_file($_FILES["foto_sapi"]["tmp_name"], $target_file)) {
         // Query untuk menyimpan data ke tabel `data_sapi`
-        // Menggunakan prepared statements untuk mencegah SQL injection
-        $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt, latitude, longitude)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Urutan kolom di sini HARUS SAMA PERSIS dengan urutan di tabel database Anda
+        // Berdasarkan screenshot, jenis_kelamin berada di paling akhir
+        $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt, latitude, longitude, jenis_kelamin)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = mysqli_prepare($koneksi, $query);
 
         // Bind parameter ke statement
-        // 'isdssssssdd' => i=integer, s=string, d=double (untuk float/decimal)
-        mysqli_stmt_bind_param($stmt, "isdssssssdd", $id_macamSapi, $foto_sapi, $harga_sapi, $nama_pemilik, $alamat_pemilik, $nomor_pemilik, $email_pemilik, $createdAt, $updatedAt, $latitude, $longitude);
+        // String format "isdssssssdds" berarti:
+        // i = id_macamSapi (int)
+        // s = foto_sapi (string)
+        // d = harga_sapi (double)
+        // s = nama_pemilik (string)
+        // s = alamat_pemilik (string)
+        // s = nomor_pemilik (string)
+        // s = email_pemilik (string)
+        // s = createdAt (string, karena sudah diformat Y-m-d H:i:s)
+        // s = updatedAt (string, karena sudah diformat Y-m-d H:i:s)
+        // d = latitude (double)
+        // d = longitude (double)
+        // s = jenis_kelamin (string)
+        mysqli_stmt_bind_param(
+            $stmt,
+            "isdssssssdds", // <-- STRING BINDING YANG DIPERBAIKI (huruf 's' kecil semua)
+            $id_macamSapi,
+            $foto_sapi,
+            $harga_sapi,
+            $nama_pemilik,
+            $alamat_pemilik,
+            $nomor_pemilik,
+            $email_pemilik,
+            $createdAt,    // Harus sesuai urutan kolom di tabel Anda
+            $updatedAt,    // Harus sesuai urutan kolom di tabel Anda
+            $latitude,
+            $longitude,
+            $jenis_kelamin // Harus sesuai urutan kolom di tabel Anda
+        );
 
         if (mysqli_stmt_execute($stmt)) {
             $id_sapi = mysqli_insert_id($koneksi); // Dapatkan ID sapi yang baru dimasukkan
@@ -229,7 +242,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -249,6 +262,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ?>
                 </select>
                 <input type="hidden" name="macam_nama" id="macamNama">
+            </div>
+
+            <div class="form-group">
+                <label for="jenis_kelamin">Jenis Kelamin:</label>
+                <select name="jenis_kelamin" id="jenis_kelamin" class="form-control" required>
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="jantan">Jantan</option>
+                    <option value="betina">Betina</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -290,13 +312,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="longitude">Longitude:</label>
                 <input type="text" name="longitude" id="longitude" class="form-control" placeholder="Contoh: 112.7522" required>
             </div>
-            <div id="formJenis"></div> <button type="submit" class="btn btn-primary btn-block">Simpan</button>
+
+            <div id="formJenis"></div>
+            <button type="submit" class="btn btn-primary btn-block">Simpan</button>
             <a href="pembeli/data_sapi.php?jenis=all" class="btn btn-secondary btn-block">Kembali</a>
         </form>
     </div>
 
     <script>
-        // Objek 'forms' yang berisi template HTML untuk setiap jenis sapi
         const forms = {
             "Sapi Kerap": `
                 <h4>Form Sapi Kerap</h4>
@@ -445,8 +468,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $('#macamNama').val(selected); // Perbarui hidden input dengan nama jenis sapi
             $('#formJenis').html(forms[selected] || ''); // Tampilkan form tambahan berdasarkan jenis sapi
         });
-
-        // Tidak ada inisialisasi peta di sini
     </script>
 </body>
 

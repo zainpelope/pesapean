@@ -22,7 +22,7 @@ $tabelSapi = $tabelMapping[$selectedKategori] ?? null;
 
 if (!empty($selectedKategori) && $tabelSapi) {
     $query = mysqli_query($koneksi, "
-        SELECT s.id_sapi, d.nama_pemilik AS nama_sapi 
+        SELECT s.id_sapi, d.nama_pemilik AS nama_sapi
         FROM $tabelSapi s
         JOIN data_sapi d ON s.id_sapi = d.id_sapi
     ");
@@ -33,7 +33,7 @@ if (!empty($selectedKategori) && $tabelSapi) {
 
 if (!empty($selectedSapiId) && $tabelSapi) {
     $lokasiQuery = mysqli_query($koneksi, "
-        SELECT d.latitude, d.longitude 
+        SELECT d.latitude, d.longitude
         FROM $tabelSapi s
         JOIN data_sapi d ON s.id_sapi = d.id_sapi
         WHERE s.id_sapi = '$selectedSapiId'
@@ -48,13 +48,34 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 <html>
 
 <head>
-    <title>Peta Sapi (Gratis)</title>
+    <title>Peta Sapi</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             padding: 20px;
+            margin: 0;
+        }
+
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
         }
 
         #map {
@@ -68,12 +89,20 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
 <body>
 
-    <h2>Peta Sapi Berdasarkan Lokasi (Gratisan)</h2>
+    <div class="navbar">
+        <a href="peta.php">Map Sapi</a>
+        <a href="rute.php">Rute Sapi</a>
+        <a href="populasi.php">Populasi Sapi</a>
+    </div>
+
+    <h2>Peta Lokasi Sapi</h2>
 
     <form method="GET" action="peta.php">
         <label for="kategori">Pilih Kategori Sapi:</label>
         <select name="kategori" onchange="this.form.submit()">
             <option value="">-- Pilih Kategori --</option>
+            <?php mysqli_data_seek($kategoriQuery, 0); // Reset pointer for second use 
+            ?>
             <?php while ($kat = mysqli_fetch_assoc($kategoriQuery)): ?>
                 <option value="<?= $kat['id_macamSapi'] ?>" <?= ($selectedKategori == $kat['id_macamSapi']) ? 'selected' : '' ?>>
                     <?= $kat['name'] ?>
@@ -99,7 +128,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
         <script>
             var map = L.map('map').setView([<?= $latitude ?>, <?= $longitude ?>], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap',
+                attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
             L.marker([<?= $latitude ?>, <?= $longitude ?>]).addTo(map)
                 .bindPopup('Lokasi Sapi')
