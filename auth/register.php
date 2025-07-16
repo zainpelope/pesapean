@@ -1,6 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 // Include file koneksi database Anda
-include 'koneksi.php';
+include '../koneksi.php';
 
 // Ambil data peran (roles) dari tabel 'role'
 // Kita akan mengambil semua role, tapi mungkin hanya akan menggunakan satu role default untuk registrasi

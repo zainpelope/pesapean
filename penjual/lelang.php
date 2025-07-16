@@ -121,6 +121,41 @@ if (!$resultDataSapi) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-pFQhV+Cq+BfS2Z2v2E2L2R2/2N2P2g2B2D2G2H2I2J2K2L2M2N2O2P2Q2R2S2T2U2V2W2X2Y2Z2==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Global CSS variables */
+        /* Styling for the "Tambah Lelang" button */
+        .btn-add-lelang {
+            background-color: var(--primary-color);
+            /* Uses your primary orange-brown color */
+            color: var(--white-bg);
+            /* White text */
+            padding: 12px 25px;
+            /* Larger padding for a more prominent button */
+            border-radius: var(--border-radius-md);
+            /* Rounded corners */
+            text-decoration: none;
+            /* Removes the default underline */
+            font-weight: 600;
+            /* Bolder text */
+            display: inline-flex;
+            /* Allows icon and text to sit side-by-side */
+            align-items: center;
+            /* Vertically centers icon and text */
+            gap: 8px;
+            /* Space between icon and text */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            /* Smooth hover effects */
+            box-shadow: var(--box-shadow-light);
+            /* Subtle shadow for depth */
+        }
+
+        .btn-add-lelang:hover {
+            background-color: #d09050;
+            /* Darker primary color on hover */
+            transform: translateY(-2px);
+            /* Slight lift effect on hover */
+            box-shadow: var(--box-shadow-medium);
+            /* Enhanced shadow on hover */
+        }
+
         :root {
             --primary-color: rgb(240, 161, 44);
             /* Orange-brown */
@@ -408,7 +443,6 @@ if (!$resultDataSapi) {
                 if (isset($_SESSION['id_user'])) {
                     // User is logged in, display Profile and Logout button
                     echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
-                    echo '<a href="../logout.php" class="btn btn-danger">Logout</a>';
                 } else {
                     // User is not logged in, display Login and Daftar buttons
                     echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
@@ -418,7 +452,11 @@ if (!$resultDataSapi) {
             </div>
         </nav>
     </header>
-    <a href="../form_lelang.php">Tambah Lelang</a>
+    <div class="container text-center my-4">
+        <a href="../form_lelang.php" class="btn-add-lelang">
+            <i class="fas fa-plus-circle"></i> Tambah Lelang Baru
+        </a>
+    </div>
 
     <div class="container mt-5">
         <div class="row">

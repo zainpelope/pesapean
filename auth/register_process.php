@@ -1,6 +1,6 @@
 <?php
 // Include file koneksi database Anda
-include 'koneksi.php';
+include '../koneksi.php';
 
 // Pastikan request method adalah POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {

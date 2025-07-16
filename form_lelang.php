@@ -46,9 +46,17 @@ if ($jenis != '') {
         if ($kategori) {
             $id_macam = $kategori['id_macamSapi'];
 
+            // --- PERUBAHAN UTAMA DI SINI ---
             // Ambil data sapi dari data_sapi berdasarkan macamSapi DAN id_user_penjual
-            // Menggunakan prepared statement untuk query data sapi
-            $queryData = "SELECT id_sapi, nama_pemilik, harga_sapi FROM data_sapi WHERE id_macamSapi = ? AND id_user_penjual = ?";
+            // Hanya tampilkan sapi yang TIDAK ADA di tabel lelang (artinya belum pernah dilelang)
+            $queryData = "
+                SELECT ds.id_sapi, ds.nama_pemilik, ds.harga_sapi
+                FROM data_sapi ds
+                LEFT JOIN lelang l ON ds.id_sapi = l.id_sapi
+                WHERE ds.id_macamSapi = ?
+                  AND ds.id_user_penjual = ?
+                  AND l.id_sapi IS NULL  -- Ini adalah kondisi kunci: lelang.id_sapi harus NULL
+            ";
             $stmt_data = mysqli_prepare($koneksi, $queryData);
 
             if ($stmt_data) {
@@ -118,7 +126,6 @@ if ($jenis != '') {
     <div class="container mt-4">
         <h3>Pendaftaran Lelang Sapi</h3>
 
-        <!-- Pilih Jenis Sapi -->
         <form method="GET" class="row g-3 mb-4">
             <div class="col-md-4">
                 <label for="jenis" class="form-label">Pilih Jenis Sapi</label>
@@ -133,7 +140,6 @@ if ($jenis != '') {
             </div>
         </form>
 
-        <!-- Tampilkan sapi berdasarkan jenis -->
         <?php if ($jenis != '') : ?>
             <form method="POST" action="proses_lelang.php">
                 <input type="hidden" name="jenis" value="<?= htmlspecialchars($jenis); ?>">
@@ -142,7 +148,7 @@ if ($jenis != '') {
                     <select name="id_sapi" id="id_sapi" class="form-select" required>
                         <option value="">-- Pilih Sapi --</option>
                         <?php if (empty($dataSapi)): ?>
-                            <option value="" disabled>Tidak ada sapi yang Anda miliki untuk jenis ini.</option>
+                            <option value="" disabled>Tidak ada sapi yang Anda miliki untuk jenis ini atau sudah terdaftar dalam lelang.</option>
                         <?php else: ?>
                             <?php foreach ($dataSapi as $sapi) : ?>
                                 <option value="<?= htmlspecialchars($sapi['id_sapi']); ?>">
@@ -153,7 +159,6 @@ if ($jenis != '') {
                     </select>
                 </div>
 
-                <!-- Form input data lelang -->
                 <div class="mb-3">
                     <label class="form-label">Harga Awal (Limit)</label>
                     <input type="number" name="harga_awal" class="form-control" required>
@@ -172,7 +177,7 @@ if ($jenis != '') {
                 <div class="mb-3">
                     <label class="form-label">Status</label>
                     <select name="status" class="form-select" required>
-                        <option value="Aktif">Aktif</option> <!-- Default to Aktif for new auctions -->
+                        <option value="Aktif">Aktif</option>
                         <option value="Sedang Berlangsung">Sedang Berlangsung</option>
                         <option value="Lewat">Lewat</option>
                     </select>

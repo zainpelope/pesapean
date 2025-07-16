@@ -510,7 +510,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                 }
                                 ?>
                                 <a href="https://wa.me/<?= htmlspecialchars($wa) ?>" target="_blank" class="btn btn-success w-100">
-                                    <i class="fab fa-whatsapp me-2"></i> Chat pembeli
+                                    <i class="fab fa-whatsapp me-2"></i> Chat Penjual
                                 </a>
                             </div>
                         </div>
