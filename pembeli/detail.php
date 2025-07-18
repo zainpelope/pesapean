@@ -255,7 +255,7 @@ $loggedInUserId = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
     <div class="container mt-5">
         <div class="detail-box shadow">
             <h3 class="mb-4 text-center">Detail Sapi Lelang</h3>
-            <img src="../uploads/<?= htmlspecialchars($sapi['foto_sapi']); ?>" alt="Foto sapi">
+            <img src="../uploads_sapi/<?= htmlspecialchars($sapi['foto_sapi']); ?>" alt="Foto sapi">
 
             <div class="mt-4">
                 <p><span class="label">Kategori:</span> <?= htmlspecialchars($sapi['kategori']); ?></p>

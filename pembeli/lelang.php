@@ -260,7 +260,7 @@ $queryDataSapi = mysqli_query($koneksi, "
                         <div class="card-header status <?= strtolower($sapi['status']); ?>">
                             <?= htmlspecialchars($sapi['status']); ?>
                         </div>
-                        <img src="../uploads/<?= htmlspecialchars($sapi['foto_sapi']); ?>" class="card-img-top" alt="gambar sapi" style="height: 200px; object-fit: cover;">
+                        <img src="../uploads_sapi/<?= htmlspecialchars($sapi['foto_sapi']); ?>" class="card-img-top" alt="gambar sapi" style="height: 200px; object-fit: cover;">
                         <div class="card-body">
                             <p class="card-text text-center text-muted small mb-1"><?= htmlspecialchars($sapi['alamat_pemilik']); ?></p>
                             <p class="card-text text-center small mb-2">
