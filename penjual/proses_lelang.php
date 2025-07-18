@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 // Start the session
 session_start();
 
-include 'koneksi.php'; // Ensure this path is correct for your database connection
+include '../koneksi.php'; // Ensure this path is correct for your database connection
 
 // Check login status and user role (only sellers can submit auctions)
 if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Penjual') {
@@ -52,7 +52,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_stmt_execute($stmt)) {
             // Redirect to a success page or the seller's auction list
-            header("Location: penjual/lelang.php?status=success_pending");
+            header("Location: ../penjual/lelang.php?status=success_pending");
             exit();
         } else {
             // If failed
@@ -64,7 +64,7 @@ if (isset($_POST['submit'])) {
     }
 } else {
     // If direct access to proses_lelang.php without form submission
-    header("Location: ../form_lelang.php");
+    header("Location: ../penjual/form_lelang.php");
     exit();
 }
 

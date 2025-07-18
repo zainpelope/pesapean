@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 // Start the session (important for checking login status)
 session_start();
 
-include 'koneksi.php'; // Ensure this path is correct for your database connection
+include '../koneksi.php'; // Ensure this path is correct for your database connection
 
 // --- IMPORTANT: Check login status and user role ---
 // Only 'Penjual' (Seller) can access this form

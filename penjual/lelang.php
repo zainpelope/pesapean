@@ -455,7 +455,7 @@ if (!$resultDataSapi) {
         </nav>
     </header>
     <div class="container text-center my-4">
-        <a href="../form_lelang.php" class="btn-add-lelang">
+        <a href="../penjual/form_lelang.php" class="btn-add-lelang">
             <i class="fas fa-plus-circle"></i> Ajukan Lelang
         </a>
     </div>
