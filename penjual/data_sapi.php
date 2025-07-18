@@ -542,7 +542,6 @@ if (!$result) {
                 if (isset($_SESSION['id_user'])) {
                     // Pengguna sudah login, tampilkan tombol Profil dan Logout
                     echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
-                    echo '<a href="../logout.php" class="btn btn-danger">Logout</a>'; // Added Logout button
                 } else {
                     // Pengguna belum login, tampilkan tombol Login dan Daftar
                     echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';

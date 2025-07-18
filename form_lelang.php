@@ -183,7 +183,7 @@ if ($jenis != '') {
                     </select>
                 </div>
 
-                <button type="submit" name="submit" class="btn btn-primary">Simpan Lelang</button>
+                <button type="submit" name="submit" class="btn btn-primary">Daftar Lelang</button>
             </form>
         <?php endif; ?>
     </div>

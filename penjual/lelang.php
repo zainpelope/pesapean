@@ -454,7 +454,7 @@ if (!$resultDataSapi) {
     </header>
     <div class="container text-center my-4">
         <a href="../form_lelang.php" class="btn-add-lelang">
-            <i class="fas fa-plus-circle"></i> Tambah Lelang Baru
+            <i class="fas fa-plus-circle"></i> Ajukan
         </a>
     </div>
 
@@ -520,11 +520,12 @@ if (!$resultDataSapi) {
             </div>
         </div>
 
-        <div class="row mt-5">
-            <div class="col text-center">
-                <a href="prosedur.php" class="btn btn-dark btn-lg w-50 mb-2">Prosedur Lelang</a><br>
-            </div>
-        </div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
     </div>
     <?php include '../footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

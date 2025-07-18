@@ -1,10 +1,15 @@
 <?php
+// Pastikan path ke koneksi.php sudah benar
 include '../koneksi.php';
 
 // Aktifkan pelaporan error
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Mulai sesi (jika diperlukan untuk admin, misalnya untuk cek login admin)
+// session_start(); 
+
+// Cek apakah id_lelang ada di URL
 if (!isset($_GET['id_lelang'])) {
     echo "ID Lelang tidak ditemukan.";
     exit;
@@ -36,13 +41,14 @@ if (!$lelang_detail) {
 }
 
 // Ambil semua penawaran untuk lelang ini
+// *** NAMA TABEL DI SINI HARUS 'Penawaran' SESUAI SCREENSHOT ANDA ***
 $query_penawaran = mysqli_query($koneksi, "
     SELECT
         p.harga_tawaran,
-        p.waktu_tawaran
-        -- Jika ada kolom id_user di tabel Penawaran, bisa di-join ke tabel users
-        -- u.username AS nama_penawar
-    FROM Penawaran p
+        p.waktu_tawaran,
+        u.username AS nama_penawar
+    FROM Penawaran p  -- PASTIKAN INI ADALAH 'penawaran' (dengan P kapital)
+    INNER JOIN users u ON p.id_user = u.id_user 
     WHERE p.id_lelang = '$id_lelang'
     ORDER BY p.harga_tawaran DESC, p.waktu_tawaran ASC
 ");
@@ -55,12 +61,17 @@ $query_penawaran = mysqli_query($koneksi, "
     <title>Detail Penawaran Lelang</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
         .detail-card {
             max-width: 800px;
             margin: auto;
             padding: 20px;
             border-radius: 8px;
             background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .detail-card img {
@@ -69,6 +80,31 @@ $query_penawaran = mysqli_query($koneksi, "
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 20px;
+        }
+
+        .table thead th {
+            background-color: #f2f2f2;
+        }
+
+        .status-badge {
+            padding: 0.4em 0.7em;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+
+        .status-badge.aktif {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.sedang {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.lewat {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
@@ -85,7 +121,11 @@ $query_penawaran = mysqli_query($koneksi, "
             <p><strong>Harga Awal:</strong> Rp<?= number_format($lelang_detail['harga_awal']) ?></p>
             <p><strong>Harga Tertinggi Saat Ini:</strong> Rp<?= number_format($lelang_detail['harga_tertinggi']) ?></p>
             <p><strong>Batas Waktu:</strong> <?= date("d M Y H:i", strtotime($lelang_detail['batas_waktu'])) ?></p>
-            <p><strong>Status Lelang:</strong> <?= htmlspecialchars($lelang_detail['status']) ?></p>
+            <p><strong>Status Lelang:</strong>
+                <span class="status-badge <?= strtolower($lelang_detail['status']) ?>">
+                    <?= htmlspecialchars($lelang_detail['status']) ?>
+                </span>
+            </p>
 
             <hr>
 
@@ -94,6 +134,7 @@ $query_penawaran = mysqli_query($koneksi, "
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
+                            <th>Penawar</th>
                             <th>Harga Tawaran</th>
                             <th>Waktu Tawaran</th>
                         </tr>
@@ -101,6 +142,7 @@ $query_penawaran = mysqli_query($koneksi, "
                     <tbody>
                         <?php while ($penawaran = mysqli_fetch_assoc($query_penawaran)): ?>
                             <tr>
+                                <td><?= htmlspecialchars($penawaran['nama_penawar']) ?></td>
                                 <td>Rp<?= number_format($penawaran['harga_tawaran']) ?></td>
                                 <td><?= date("d M Y H:i:s", strtotime($penawaran['waktu_tawaran'])) ?></td>
                             </tr>

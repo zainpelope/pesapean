@@ -2,18 +2,25 @@
 include 'koneksi.php'; // Sesuaikan path ke file koneksi Anda
 
 // --- Logika Update Status Lelang Otomatis ---
-// Pastikan ini juga berjalan untuk admin agar data selalu up-to-date
-mysqli_query($koneksi, "
+// Memperbarui status lelang yang batas waktunya sudah lewat menjadi 'Lewat'
+// Menggunakan prepared statement untuk keamanan, meskipun tidak ada input user langsung
+$stmt_auto_update = mysqli_prepare($koneksi, "
     UPDATE lelang
     SET status = 'Lewat', updatedAt = NOW()
     WHERE batas_waktu < NOW() AND status = 'Aktif'
 ");
+if ($stmt_auto_update) {
+    mysqli_stmt_execute($stmt_auto_update);
+    mysqli_stmt_close($stmt_auto_update);
+} else {
+    // Log error jika prepared statement gagal (ini jarang terjadi untuk query statis)
+    error_log("Error preparing auto-update query: " . mysqli_error($koneksi));
+}
+
 
 // --- Ambil Data Lelang yang Perlu Diverifikasi ---
-// Kita akan ambil lelang yang statusnya 'Aktif' tapi batas waktunya sudah lewat,
-// atau lelang yang statusnya 'Lewat' tapi belum memiliki pemenang (id_penawaranTertinggi belum final).
-// Atau lelang yang aktif tapi ingin dilihat penawarannya
-$query_lelang = mysqli_query($koneksi, "
+// Mengambil data lelang beserta informasi sapi dan penawaran tertinggi
+$query_lelang_sql = "
     SELECT
         l.id_lelang,
         l.harga_awal,
@@ -25,16 +32,18 @@ $query_lelang = mysqli_query($koneksi, "
         ms.name AS kategori_sapi,
         COALESCE(p.harga_tawaran, l.harga_tertinggi) AS current_highest_bid_display,
         COALESCE(p.waktu_tawaran, l.updatedAt) AS highest_bid_time,
-        p.id_penawaran AS id_penawaran_tertinggi_saat_ini,
+        l.id_penawaranTertinggi AS id_penawaran_tertinggi_saat_ini, -- Kolom yang menyimpan ID penawaran tertinggi
         ds.id_sapi
     FROM lelang l
     INNER JOIN data_sapi ds ON l.id_sapi = ds.id_sapi
     INNER JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi
     LEFT JOIN Penawaran p ON l.id_penawaranTertinggi = p.id_penawaran
     ORDER BY l.status DESC, l.batas_waktu ASC
-");
+";
 
-// Pesan notifikasi setelah verifikasi
+$query_lelang = mysqli_query($koneksi, $query_lelang_sql);
+
+// Pesan notifikasi setelah verifikasi (dari parameter URL 'status')
 $message = '';
 $alert_type = '';
 if (isset($_GET['status'])) {
@@ -45,7 +54,7 @@ if (isset($_GET['status'])) {
         $message = 'Lelang ini belum memiliki penawaran tertinggi untuk diverifikasi.';
         $alert_type = 'info';
     } elseif ($_GET['status'] == 'error') {
-        $message = 'Terjadi kesalahan saat memverifikasi lelang.';
+        $message = 'Terjadi kesalahan saat memverifikasi lelang. Silakan periksa log server untuk detailnya.';
         $alert_type = 'danger';
     }
 }
@@ -59,43 +68,74 @@ if (isset($_GET['status'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
+        /* Gaya umum untuk body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            /* Warna latar belakang terang */
+        }
+
+        /* Gaya untuk kartu lelang */
         .lelang-card {
             margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .lelang-card:hover {
+            transform: translateY(-5px);
+            /* Efek angkat saat hover */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            /* Efek bayangan saat hover */
         }
 
         .lelang-card img {
             width: 100%;
             height: 200px;
             object-fit: cover;
+            /* Memastikan gambar mengisi area tanpa distorsi */
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
 
         .lelang-card .card-body {
             padding: 15px;
         }
 
+        /* Gaya untuk badge status */
         .status-badge {
             padding: 5px 10px;
             border-radius: 5px;
             font-weight: bold;
             color: white;
+            display: inline-block;
+            /* Agar bisa diatur padding/margin */
         }
 
         .status-aktif {
             background-color: #28a745;
-            /* Green */
+            /* Hijau */
         }
 
         .status-lewat {
             background-color: #ffc107;
-            /* Yellow */
+            /* Kuning */
+            color: #333;
+            /* Warna teks lebih gelap untuk kontras */
         }
 
         .status-terverifikasi {
             background-color: #007bff;
-            /* Blue */
+            /* Biru */
+        }
+
+        /* Gaya untuk tombol */
+        .btn-sm.w-100 {
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -134,8 +174,14 @@ if (isset($_GET['status'])) {
                                     </span>
                                 </p>
 
-                                <?php if ($lelang['status'] == 'Lewat' && $lelang['id_penawaran_tertinggi_saat_ini'] !== null): // Jika sudah lewat dan ada penawar 
-                                ?>
+                                <?php
+                                // Logic untuk menampilkan tombol verifikasi atau status
+                                $can_verify = ($lelang['status'] == 'Lewat' && $lelang['id_penawaran_tertinggi_saat_ini'] !== null);
+                                $no_valid_bid = ($lelang['status'] == 'Lewat' && $lelang['id_penawaran_tertinggi_saat_ini'] === null);
+                                $is_verified = ($lelang['status'] == 'Terverifikasi');
+                                $is_active = ($lelang['status'] == 'Aktif');
+
+                                if ($can_verify): ?>
                                     <p class="text-success">Siap Diverifikasi</p>
                                     <form action="proses_verifikasi.php" method="POST">
                                         <input type="hidden" name="id_lelang" value="<?= htmlspecialchars($lelang['id_lelang']) ?>">
@@ -143,16 +189,13 @@ if (isset($_GET['status'])) {
                                         <button type="submit" class="btn btn-primary btn-sm w-100"
                                             onclick="return confirm('Anda yakin ingin memverifikasi lelang ini dan menetapkan pemenang?')">Verifikasi Lelang Ini</button>
                                     </form>
-                                <?php elseif ($lelang['status'] == 'Lewat' && $lelang['id_penawaran_tertinggi_saat_ini'] === null): // Jika sudah lewat tapi tidak ada penawaran 
-                                ?>
+                                <?php elseif ($no_valid_bid): ?>
                                     <p class="text-warning">Belum ada penawaran sah.</p>
                                     <button type="button" class="btn btn-secondary btn-sm w-100" disabled>Tidak Ada Pemenang</button>
-                                <?php elseif ($lelang['status'] == 'Terverifikasi'): // Jika sudah terverifikasi 
-                                ?>
+                                <?php elseif ($is_verified): ?>
                                     <p class="text-info">Lelang sudah diverifikasi.</p>
                                     <button type="button" class="btn btn-success btn-sm w-100" disabled>Sudah Diverifikasi</button>
-                                <?php else: // Jika masih aktif 
-                                ?>
+                                <?php elseif ($is_active): ?>
                                     <p class="text-primary">Lelang masih aktif.</p>
                                     <button type="button" class="btn btn-info btn-sm w-100" disabled>Lelang Aktif</button>
                                 <?php endif; ?>
