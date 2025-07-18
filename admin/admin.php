@@ -18,15 +18,15 @@ if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Admin') {
 
 $id_admin_login = $_SESSION['id_user']; // Get the logged-in admin's ID
 
-// Process  or rejection
+// Process approval or rejection
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $lelang_id = $_GET['id'];
     $action = $_GET['action'];
 
     if ($action === 'approve') {
-        $new_status = 'Aktif'; // Auction becomes active after 
+        $new_status = 'Aktif'; // Auction becomes active after approval
         $approved_by_admin_value = 1; // Set to 1 (approved)
-        $approved_at_value = date('Y-m-d H:i:s'); //  timestamp
+        $approved_at_value = date('Y-m-d H:i:s'); // Approval timestamp
         $id_admin_approver_value = $id_admin_login; // The admin who approved it
 
         $stmt = mysqli_prepare($koneksi, "UPDATE lelang SET status = ?, approved_by_admin = ?, approved_at = ?, id_admin_approver = ?, updatedAt = NOW() WHERE id_sapi = ?");
@@ -34,7 +34,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         mysqli_stmt_bind_param($stmt, "sisii", $new_status, $approved_by_admin_value, $approved_at_value, $id_admin_approver_value, $lelang_id);
 
         if (mysqli_stmt_execute($stmt)) {
-            echo "<script>alert('Lelang berhasil disetujui!');</script>";
+            echo "<script>alert('Lelang berhasil disetujui!'); window.location.href='admin.php';</script>"; // Redirect to refresh the list
         } else {
             echo "<script>alert('Gagal menyetujui lelang: " . mysqli_error($koneksi) . "');</script>";
         }
@@ -49,7 +49,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         mysqli_stmt_bind_param($stmt, "sii", $new_status, $approved_by_admin_value, $lelang_id);
 
         if (mysqli_stmt_execute($stmt)) {
-            echo "<script>alert('Lelang berhasil ditolak!');</script>";
+            echo "<script>alert('Lelang berhasil ditolak!'); window.location.href='admin.php';</script>"; // Redirect to refresh the list
         } else {
             echo "<script>alert('Gagal menolak lelang: " . mysqli_error($koneksi) . "');</script>";
         }
@@ -57,7 +57,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
-// Fetch auction data that are pending  (approved_by_admin = 0) or rejected (status = 'Ditolak')
+// Fetch all auction data regardless of status
 $queryPendingLelang = "
     SELECT
         l.id_sapi,
@@ -72,7 +72,6 @@ $queryPendingLelang = "
     FROM lelang l
     INNER JOIN data_sapi ds ON l.id_sapi = ds.id_sapi
     INNER JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi
-    WHERE l.approved_by_admin = 0 OR l.status = 'Ditolak'
     ORDER BY l.createdAt DESC
 ";
 $resultPendingLelang = mysqli_query($koneksi, $queryPendingLelang);
@@ -226,7 +225,7 @@ if (!$resultPendingLelang) {
                         <?php endwhile; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="10" class="text-center">Tidak ada lelang yang menunggu persetujuan.</td>
+                            <td colspan="10" class="text-center">Tidak ada data lelang ditemukan.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
