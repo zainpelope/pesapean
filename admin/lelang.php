@@ -174,13 +174,12 @@ if (!$resultPendingLelang) {
                 <li><a href="../admin/admin.php">Beranda</a></li>
                 <li><a href="../admin/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../admin/lelang.php">Lelang</a></li>
-                <li><a href="../admin/peta.php">Data User</a></li>
-                <li><a href="../admin/peta.php">Pesan</a></li>
+                <li><a href="../admin/data_user.php">Data User</a></li>
+                <li><a href="../admin/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php if (isset($_SESSION['id_user'])): ?>
                     <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
-
                 <?php else: ?>
                     <a href="../auth/login.php" class="btn btn-primary">Login</a>
                     <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
