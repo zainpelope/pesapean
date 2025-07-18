@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Redirect ke halaman dashboard atau halaman sesuai peran
                 switch ($_SESSION['nama_role']) {
                     case 'Admin':
-                        header("Location: ../admin/admin.php");
+                        header("Location: ../admin_approval.php");
                         break;
                     case 'Penjual': // Asumsi 'Penjual' adalah nama role untuk penjual
                         header("Location: ../penjual/beranda.php");

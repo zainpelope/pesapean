@@ -1,25 +1,26 @@
 <?php
-// Aktifkan error reporting untuk debugging
+// Enable error reporting for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Mulai sesi (penting untuk mengecek status login dan mendapatkan id_user)
+// Start the session (important for checking login status)
 session_start();
 
-include 'koneksi.php'; // Pastikan path ini benar untuk koneksi database Anda
+include 'koneksi.php'; // Ensure this path is correct for your database connection
 
-// --- PENTING: Cek status login dan peran pengguna ---
+// --- IMPORTANT: Check login status and user role ---
+// Only 'Penjual' (Seller) can access this form
 if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Penjual') {
-    // Jika tidak login atau bukan penjual, redirect ke halaman login dengan pesan error
+    // If not logged in or not a seller, redirect to login page with an error message
     header("Location: ../auth/login.php?error=Akses tidak diizinkan. Anda harus login sebagai Penjual untuk membuat lelang.");
     exit();
 }
 
-// Ambil ID user penjual yang sedang login dari sesi
+// Get the logged-in seller's user ID from the session
 $id_user_penjual_login = $_SESSION['id_user'];
 
-// Ambil semua kategori sapi dari macamSapi
+// Fetch all categories from the 'macamSapi' table
 $kategoriQuery = mysqli_query($koneksi, "SELECT id_macamSapi, name FROM macamSapi ORDER BY name ASC");
 $kategori_options = [];
 if ($kategoriQuery) {
@@ -28,13 +29,12 @@ if ($kategoriQuery) {
     }
 }
 
-// Jika form sudah dipilih
+// Get the selected category from the URL (GET parameter)
 $jenis = isset($_GET['jenis']) ? $_GET['jenis'] : '';
 $dataSapi = [];
 
 if ($jenis != '') {
-    // Ambil ID kategori
-    // Menggunakan prepared statement untuk mengambil id_macamSapi
+    // Get category ID
     $stmt_get_kategori = mysqli_prepare($koneksi, "SELECT id_macamSapi FROM macamSapi WHERE name = ?");
     if ($stmt_get_kategori) {
         mysqli_stmt_bind_param($stmt_get_kategori, "s", $jenis);
@@ -46,16 +46,15 @@ if ($jenis != '') {
         if ($kategori) {
             $id_macam = $kategori['id_macamSapi'];
 
-            // --- PERUBAHAN UTAMA DI SINI ---
-            // Ambil data sapi dari data_sapi berdasarkan macamSapi DAN id_user_penjual
-            // Hanya tampilkan sapi yang TIDAK ADA di tabel lelang (artinya belum pernah dilelang)
+            // Fetch cattle data from 'data_sapi' based on 'macamSapi' AND 'id_user_penjual'
+            // Only show cattle that are NOT yet in the 'lelang' table (meaning they haven't been auctioned)
             $queryData = "
                 SELECT ds.id_sapi, ds.nama_pemilik, ds.harga_sapi
                 FROM data_sapi ds
                 LEFT JOIN lelang l ON ds.id_sapi = l.id_sapi
                 WHERE ds.id_macamSapi = ?
                   AND ds.id_user_penjual = ?
-                  AND l.id_sapi IS NULL  -- Ini adalah kondisi kunci: lelang.id_sapi harus NULL
+                  AND l.id_sapi IS NULL -- Key condition: lelang.id_sapi must be NULL (not yet in auction)
             ";
             $stmt_data = mysqli_prepare($koneksi, $queryData);
 
@@ -69,7 +68,6 @@ if ($jenis != '') {
                 }
                 mysqli_stmt_close($stmt_data);
             } else {
-                // Handle error jika prepared statement gagal
                 die("Error prepared statement for data sapi: " . mysqli_error($koneksi));
             }
         }
@@ -175,15 +173,11 @@ if ($jenis != '') {
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select" required>
-                        <option value="Aktif">Aktif</option>
-                        <option value="Sedang Berlangsung">Sedang Berlangsung</option>
-                        <option value="Lewat">Lewat</option>
-                    </select>
+                    <label class="form-label">Status (Akan diset Pending, Menunggu Persetujuan Admin)</label>
+                    <input type="text" class="form-control" value="Pending" readonly>
                 </div>
 
-                <button type="submit" name="submit" class="btn btn-primary">Daftar Lelang</button>
+                <button type="submit" name="submit" class="btn btn-primary">Ajukan Lelang</button>
             </form>
         <?php endif; ?>
     </div>

@@ -11,10 +11,11 @@ session_start();
 include '../koneksi.php'; // Ensure this path is correct for your database connection
 
 // Automatically update auction status to 'Lewat' (Expired) if the end time has passed
+// This update should only apply to auctions that are 'Aktif' and approved
 mysqli_query($koneksi, "
     UPDATE lelang
     SET status = 'Lewat', updatedAt = NOW()
-    WHERE batas_waktu < NOW() AND status = 'Aktif'
+    WHERE batas_waktu < NOW() AND status = 'Aktif' AND approved_by_admin = 1
 ");
 
 // Fetch all categories from the 'macamSapi' table
@@ -35,20 +36,21 @@ if (isset($_GET['my_auctions'])) {
     $showMyAuctions = ($_GET['my_auctions'] == 'true');
 } else if (isset($_SESSION['id_user']) && $_SESSION['nama_role'] === 'Penjual') {
     // If 'my_auctions' is not explicitly set in URL, but user is a seller,
-    // default to showing only their auctions.
+    // default to showing only their auctions (which are also approved).
     $showMyAuctions = true;
 }
 
 // Initialize the WHERE clause parts
-$where_clauses = ["1"]; // Default to '1' (true) so the query is always valid
+// Start with filtering only approved auctions
+$where_clauses = ["l.approved_by_admin = 1"];
 
-// If the user is logged in as a seller and 'My Auctions' filter is selected (either by default or explicitly)
-$param_types = ""; // Initialize parameter types string for prepared statement
-$param_values = []; // Initialize parameter values array for prepared statement
+// Initialize parameter types string and values array for prepared statement
+$param_types = "";
+$param_values = [];
 
 if ($showMyAuctions && isset($_SESSION['id_user']) && $_SESSION['nama_role'] === 'Penjual') {
     $id_user_penjual_login = $_SESSION['id_user'];
-    // Filter by the 'id_user' column in the 'lelang' table (which identifies the seller who created the auction)
+    // Filter by the 'id_user' column in the 'lelang' table (the auction creator)
     $where_clauses[] = "l.id_user = ?";
     $param_types .= "i"; // 'i' for integer
     $param_values[] = $id_user_penjual_login;
@@ -118,10 +120,10 @@ if (!$resultDataSapi) {
     <link rel="stylesheet" href="../style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-pFQhV+Cq+BfS2Z2v2E2L2R2/2N2P2g2B2D2G2H2I2J2K2L2M2N2O2P2Q2R2S2T2U2V2W2X2Y2Z2==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-pFQhV+Cq+BfS2Z2v2E2L2R2/2N2P2g2B2D2G2H2I2J2K2L2M2N2O2P2Q2R2S2T2U2V2W2X2Y2Z2==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Global CSS variables */
-        /* Styling for the "Tambah Lelang" button */
+        /* Styling for the "Ajukan Lelang" button */
         .btn-add-lelang {
             background-color: var(--primary-color);
             /* Uses your primary orange-brown color */
@@ -454,7 +456,7 @@ if (!$resultDataSapi) {
     </header>
     <div class="container text-center my-4">
         <a href="../form_lelang.php" class="btn-add-lelang">
-            <i class="fas fa-plus-circle"></i> Ajukan
+            <i class="fas fa-plus-circle"></i> Ajukan Lelang
         </a>
     </div>
 
@@ -477,8 +479,6 @@ if (!$resultDataSapi) {
                             </label>
                         </div>
                     <?php endforeach; ?>
-
-
                 </form>
             </div>
 
@@ -492,7 +492,7 @@ if (!$resultDataSapi) {
                         <div class="card-header status <?= strtolower($sapi['status']); ?>">
                             <?= htmlspecialchars($sapi['status']); ?>
                         </div>
-                        <img src="../uploads_sapi/<?= htmlspecialchars($sapi['foto_sapi']); ?>" class="card-img-top" alt="gambar sapi" style="height: 200px; object-fit: cover;">
+                        <img src="../uploads_sapi/<?= htmlspecialchars($sapi['foto_sapi']); ?>" class="card-img-top" alt="gambar sapi">
                         <div class="card-body">
                             <h5 class="card-title text-center mb-2"><?= htmlspecialchars($sapi['kategori'] ?? 'N/A') ?></h5>
                             <p class="card-text text-center">Pemilik: <strong><?= htmlspecialchars($sapi['nama_pemilik'] ?? 'N/A'); ?></strong></p>
@@ -528,7 +528,7 @@ if (!$resultDataSapi) {
         <br>
     </div>
     <?php include '../footer.php'; ?>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 
 </html>
