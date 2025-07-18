@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php'; // sesuaikan path dengan file koneksi kamu
+include '../koneksi.php'; // sesuaikan path dengan file koneksi kamu
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Upload gambar
     $gambar = $_FILES['gambar']['name'];
     $tmp = $_FILES['gambar']['tmp_name'];
-    $path = "uploads/" . $gambar;
+    $path = "../uploads/" . $gambar;
 
     if (move_uploaded_file($tmp, $path)) {
         // Simpan data ke database (tanpa id_home)

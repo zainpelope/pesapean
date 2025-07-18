@@ -84,6 +84,22 @@ if ($koneksi) {
         .auth-links .btn-danger:hover {
             background-color: #c82333;
         }
+
+        /* Styling for the admin action buttons */
+        .admin-actions {
+            text-align: center;
+            /* Center the buttons */
+            margin-top: 30px;
+            /* Add some space above the buttons */
+            margin-bottom: 50px;
+        }
+
+        .admin-actions .btn {
+            margin: 0 10px;
+            /* Space between buttons */
+            min-width: 100px;
+            /* Ensure buttons have a minimum width */
+        }
     </style>
 </head>
 
@@ -103,7 +119,6 @@ if ($koneksi) {
             <div class="auth-links">
                 <?php if (isset($_SESSION['id_user'])): ?>
                     <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
-
                 <?php else: ?>
                     <a href="../auth/login.php" class="btn btn-primary">Login</a>
                     <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
@@ -118,7 +133,6 @@ if ($koneksi) {
             <div class="hero-content">
                 <h1>Pesapean (Preferensi Sapi dan adminan)</h1>
                 <p>Website ini membantu anda dalam menentukan preferensi sapi dan adminan yang anda inginkan.</p>
-                <a href="#join-us" class="btn btn-secondary">Join With Us</a>
             </div>
         </section>
 
@@ -130,6 +144,7 @@ if ($koneksi) {
                     <img src="placeholder.jpg" alt="No Image Available">
                 <?php endif; ?>
             </div>
+
             <div class="about-text">
                 <h2>Tentang Sape Sonok</h2>
                 <?php if ($data && isset($data['sejarah'])): ?>
@@ -140,10 +155,23 @@ if ($koneksi) {
             </div>
         </section>
 
+        <div class="admin-actions">
+            <a href="../admin/sejarah.php" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i> Tambah Data
+            </a>
+            <a href="../admin/edit_sejarah.php?id=<?php echo $data['id_home'] ?? ''; ?>" class="btn btn-warning text-white">
+                <i class="fas fa-edit"></i> Edit Data
+            </a>
+            <a href="../admin/hapus_sejarah.php?id=<?php echo $data['id_home'] ?? ''; ?>" class="btn btn-danger" onclick="return confirm('Anda yakin ingin menghapus data ini?');">
+                <i class="fas fa-trash-alt"></i> Hapus Data
+            </a>
+        </div>
+
         <?php include '../tim_kami.php'; ?>
     </main>
 
     <?php include '../footer.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
