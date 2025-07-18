@@ -370,26 +370,23 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="../pembeli/beranda.php">Pesapean</a>
+                <a href="../admin/admin.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="../pembeli/beranda.php">Beranda</a></li>
-                <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
-                <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../admin/admin.php">Beranda</a></li>
+                <li><a href="../admin/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../admin/lelang.php">Lelang</a></li>
+                <li><a href="../admin/peta.php">Data User</a></li>
+                <li><a href="../admin/peta.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
-                <?php
-                // Check if the user is logged in
-                if (isset($_SESSION['id_user'])) {
-                    // User is logged in, display Profile button
-                    echo '<a href="../profile.php" class="btn btn-primary">Profile</a>';
-                } else {
-                    // User is not logged in, display Login and Daftar buttons
-                    echo '<a href="../login.php" class="btn btn-primary">Login</a>';
-                    echo '<a href="../register.php" class="btn btn-outline-primary">Daftar</a>';
-                }
-                ?>
+                <?php if (isset($_SESSION['id_user'])): ?>
+                    <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
+
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-primary">Login</a>
+                    <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
+                <?php endif; ?>
             </div>
         </nav>
     </header>
@@ -509,9 +506,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                     $wa = '62' . substr($wa, 1);
                                 }
                                 ?>
-                                <a href="https://wa.me/<?= htmlspecialchars($wa) ?>" target="_blank" class="btn btn-success w-100">
-                                    <i class="fab fa-whatsapp me-2"></i> Chat Penjual
-                                </a>
+
                             </div>
                         </div>
                     </div>
