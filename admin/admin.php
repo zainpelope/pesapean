@@ -18,15 +18,15 @@ if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Admin') {
 
 $id_admin_login = $_SESSION['id_user']; // Get the logged-in admin's ID
 
-// Process approval or rejection
+// Process  or rejection
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $lelang_id = $_GET['id'];
     $action = $_GET['action'];
 
     if ($action === 'approve') {
-        $new_status = 'Aktif'; // Auction becomes active after approval
+        $new_status = 'Aktif'; // Auction becomes active after 
         $approved_by_admin_value = 1; // Set to 1 (approved)
-        $approved_at_value = date('Y-m-d H:i:s'); // Approval timestamp
+        $approved_at_value = date('Y-m-d H:i:s'); //  timestamp
         $id_admin_approver_value = $id_admin_login; // The admin who approved it
 
         $stmt = mysqli_prepare($koneksi, "UPDATE lelang SET status = ?, approved_by_admin = ?, approved_at = ?, id_admin_approver = ?, updatedAt = NOW() WHERE id_sapi = ?");
@@ -57,7 +57,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
-// Fetch auction data that are pending approval (approved_by_admin = 0) or rejected (status = 'Ditolak')
+// Fetch auction data that are pending  (approved_by_admin = 0) or rejected (status = 'Ditolak')
 $queryPendingLelang = "
     SELECT
         l.id_sapi,
@@ -216,8 +216,8 @@ if (!$resultPendingLelang) {
                                 </td>
                                 <td>
                                     <?php if ($lelang['status'] == 'Pending') : ?>
-                                        <a href="admin_approval.php?action=approve&id=<?= htmlspecialchars($lelang['id_sapi']); ?>" class="btn btn-approve btn-sm mb-1" onclick="return confirm('Apakah Anda yakin ingin menyetujui lelang ini?');">Setujui</a>
-                                        <a href="admin_approval.php?action=reject&id=<?= htmlspecialchars($lelang['id_sapi']); ?>" class="btn btn-reject btn-sm" onclick="return confirm('Apakah Anda yakin ingin menolak lelang ini?');">Tolak</a>
+                                        <a href="admin.php?action=approve&id=<?= htmlspecialchars($lelang['id_sapi']); ?>" class="btn btn-approve btn-sm mb-1" onclick="return confirm('Apakah Anda yakin ingin menyetujui lelang ini?');">Setujui</a>
+                                        <a href="admin.php?action=reject&id=<?= htmlspecialchars($lelang['id_sapi']); ?>" class="btn btn-reject btn-sm" onclick="return confirm('Apakah Anda yakin ingin menolak lelang ini?');">Tolak</a>
                                     <?php else : ?>
                                         Sudah diproses
                                     <?php endif; ?>

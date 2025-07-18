@@ -47,7 +47,8 @@ $queryDataSapi = mysqli_query($koneksi, "
     INNER JOIN lelang l ON ds.id_sapi = l.id_sapi
     LEFT JOIN Penawaran p ON l.id_penawaranTertinggi = p.id_penawaran -- Gabung dengan Penawaran
     LEFT JOIN users u ON p.id_user = u.id_user -- Gabung dengan users untuk detail penawar
-    " . ($selectedKategori != 'semua' ? "WHERE ms.id_macamSapi = '" . mysqli_real_escape_string($koneksi, $selectedKategori) . "'" : "") . "
+    WHERE l.status != 'Pending' " . // <--- Tambahkan kondisi ini untuk mengecualikan status 'Pending'
+    ($selectedKategori != 'semua' ? "AND ms.id_macamSapi = '" . mysqli_real_escape_string($koneksi, $selectedKategori) . "'" : "") . "
     ORDER BY l.createdAt DESC
 ");
 ?>
@@ -266,9 +267,9 @@ $queryDataSapi = mysqli_query($koneksi, "
                                 Nilai limit: <strong>Rp<?= number_format($sapi['harga_awal']); ?></strong><br>
                                 Harga tertinggi: <strong>Rp<?= number_format($sapi['harga_tertinggi']); ?></strong>
                             </p>
-                            <?php if ($sapi['status'] == 'Aktif' || $sapi['status'] == 'Sedang'): // Tampilkan informasi penawar tertinggi hanya jika lelang aktif/sedang 
+                            <?php if ($sapi['status'] == 'Aktif' || $sapi['status'] == 'Sedang') : // Tampilkan informasi penawar tertinggi hanya jika lelang aktif/sedang 
                             ?>
-                                <?php if (!empty($sapi['nama_penawar_tertinggi'])): ?>
+                                <?php if (!empty($sapi['nama_penawar_tertinggi'])) : ?>
                                     <p class="card-text text-center small mt-2">
                                         Penawar Tertinggi:
                                         <strong>
@@ -278,20 +279,20 @@ $queryDataSapi = mysqli_query($koneksi, "
                                             <?php endif; ?>
                                         </strong>
                                     </p>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <p class="card-text text-center small mt-2 text-info">
                                         Belum ada penawaran.
                                     </p>
                                 <?php endif; ?>
-                            <?php elseif ($sapi['status'] == 'Lewat'): ?>
+                            <?php elseif ($sapi['status'] == 'Lewat') : ?>
                                 <p class="card-text text-center small mt-2 text-danger">
                                     Lelang telah berakhir.
                                 </p>
-                                <?php if (!empty($sapi['nama_penawar_tertinggi'])): ?>
+                                <?php if (!empty($sapi['nama_penawar_tertinggi'])) : ?>
                                     <p class="card-text text-center small mt-1">
                                         Pemenang: <strong><?= htmlspecialchars($sapi['nama_penawar_tertinggi']); ?></strong>
                                     </p>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <p class="card-text text-center small mt-1">
                                         Tidak ada pemenang.
                                     </p>
