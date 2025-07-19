@@ -98,6 +98,7 @@ if ($koneksi) {
                 <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
                 <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../pembeli/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php if (isset($_SESSION['id_user'])): ?>
@@ -117,7 +118,9 @@ if ($koneksi) {
             <div class="hero-content">
                 <h1>Pesapean (Preferensi Sapi dan Penjualan)</h1>
                 <p>Website ini membantu anda dalam menentukan preferensi sapi dan penjualan yang anda inginkan.</p>
-                <a href="#join-us" class="btn btn-secondary">Join With Us</a>
+                <a href="chat_admin.php?recipient_id=1;
+                                                        echo htmlspecialchars($admin_id_for_chat);
+                                                        ?>" class="btn btn-secondary">Join With Us</a>
             </div>
         </section>
 

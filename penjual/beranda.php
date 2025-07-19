@@ -88,6 +88,7 @@ if ($koneksi) {
 </head>
 
 <body>
+
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
@@ -98,15 +99,20 @@ if ($koneksi) {
                 <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
                 <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../penjual/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
-                <?php if (isset($_SESSION['id_user'])): ?>
-                    <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
-
-                <?php else: ?>
-                    <a href="../auth/login.php" class="btn btn-primary">Login</a>
-                    <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
-                <?php endif; ?>
+                <?php
+                // Cek apakah pengguna sudah login
+                if (isset($_SESSION['id_user'])) {
+                    // Pengguna sudah login, tampilkan tombol Profil dan Logout
+                    echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
+                } else {
+                    // Pengguna belum login, tampilkan tombol Login dan Daftar
+                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
+                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>';
+                }
+                ?>
             </div>
         </nav>
     </header>
@@ -117,7 +123,7 @@ if ($koneksi) {
             <div class="hero-content">
                 <h1>Pesapean (Preferensi Sapi dan Penjualan)</h1>
                 <p>Website ini membantu anda dalam menentukan preferensi sapi dan penjualan yang anda inginkan.</p>
-                <a href="#join-us" class="btn btn-secondary">Join With Us</a>
+
             </div>
         </section>
 

@@ -377,6 +377,7 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                 <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
                 <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../pembeli/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php
@@ -509,8 +510,8 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                     $wa = '62' . substr($wa, 1);
                                 }
                                 ?>
-                                <a href="https://wa.me/<?= htmlspecialchars($wa) ?>" target="_blank" class="btn btn-success w-100">
-                                    <i class="fab fa-whatsapp me-2"></i> Chat Penjual
+                                <a href="chat.php?sapi_id=<?= htmlspecialchars($r['id_sapi']) ?>&recipient_id=<?= htmlspecialchars($r['id_user_penjual']) ?>" class="btn btn-success w-100">
+                                    <i class="fas fa-comments me-2"></i> Chat Penjual
                                 </a>
                             </div>
                         </div>

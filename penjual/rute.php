@@ -416,6 +416,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                 <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
                 <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../penjual/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/pesan.php">Pesan</a></li>
 
             </ul>
             <div class="auth-links">

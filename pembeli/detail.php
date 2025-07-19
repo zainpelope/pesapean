@@ -312,6 +312,9 @@ $loggedInUserId = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
                         <br>Pemenang: <strong><?= htmlspecialchars($sapi['nama_penawar_tertinggi']); ?></strong> dengan harga Rp<?= number_format($sapi['harga_tertinggi']); ?>
                         <?php if ($loggedInUserId && $sapi['id_penawar_tertinggi'] == $loggedInUserId): ?>
                             <br><span class="badge bg-success mt-1">Selamat, Anda memenangkan lelang ini!</span>
+                            <p class="mt-3">
+                                Silakan klik <a href="pembayaran.php?id_lelang=<?= htmlspecialchars($sapi['id_lelang']); ?>" class="alert-link">di sini</a> untuk melakukan pembayaran.
+                            </p>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>

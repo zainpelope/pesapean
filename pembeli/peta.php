@@ -492,14 +492,15 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                 <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
                 <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../pembeli/lelang.php">Lelang</a></li>
+                <li><a href="../pembeli/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php if (isset($_SESSION['id_user'])): ?>
-                    <a href="../profile.php" class="btn btn-primary">Profile</a>
+                    <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
 
                 <?php else: ?>
-                    <a href="../login.php" class="btn btn-primary">Login</a>
-                    <a href="../register.php" class="btn btn-outline-primary">Daftar</a>
+                    <a href="../auth/login.php" class="btn btn-primary">Login</a>
+                    <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
                 <?php endif; ?>
             </div>
         </nav>

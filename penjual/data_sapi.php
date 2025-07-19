@@ -535,6 +535,7 @@ if (!$result) {
                 <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
                 <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../penjual/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php
@@ -695,9 +696,7 @@ if (!$result) {
                                         $wa_number = '62' . substr($wa_number, 1);
                                     }
                                 ?>
-                                    <a href="https://wa.me/<?= htmlspecialchars($wa_number) ?>" class="btn btn-success" target="_blank">
-                                        <i class="fab fa-whatsapp me-2"></i> WhatsApp
-                                    </a>
+
                                     <a href="edit_sapi.php?id=<?= htmlspecialchars($r['id_sapi']) ?>&jenis=<?= htmlspecialchars($jenis_filter) ?>" class="btn btn-info">
                                         <i class="fas fa-edit me-2"></i> Edit
                                     </a>

@@ -8,20 +8,22 @@ session_start();
 include '../koneksi.php'; // Pastikan path ini benar
 
 // --- PENTING: Cek status login dan peran pengguna ---
-if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Admin') {
-    header("Location: ../auth/login.php?error=Akses tidak diizinkan. Anda harus login sebagai Admin.");
+if (!isset($_SESSION['id_user']) || $_SESSION['nama_role'] !== 'Penjual') {
+    header("Location: ../auth/login.php?error=Akses tidak diizinkan. Anda harus login sebagai Penjual.");
     exit();
 }
 
-$current_user_id = $_SESSION['id_user']; // ID admin yang sedang login
+$current_user_id = $_SESSION['id_user']; // ID penjual yang sedang login
 
-// Query untuk mengambil semua chatroom di mana admin ini adalah salah satu pesertanya
+// Query untuk mengambil semua chatroom di mana penjual ini adalah salah satu pesertanya
+// (baik sebagai user1_id atau user2_id)
+// Kita juga mengambil informasi tentang lawan bicara (pengguna lain di chatroom)
+// dan informasi dasar tentang sapi yang terkait.
 $query = "SELECT
             cr.id_chatRooms,
             cr.id_sapi,
             cr.user1_id,
             cr.user2_id,
-            cr.chat_type,
             ds.jenis_kelamin AS sapi_jenis_kelamin,
             ms.name AS sapi_jenis_sapi,
             CASE
@@ -47,13 +49,14 @@ $query = "SELECT
           WHERE
             cr.user1_id = ? OR cr.user2_id = ?
           ORDER BY
-            last_message_time DESC, cr.updatedAt DESC";
+            last_message_time DESC, cr.updatedAt DESC"; // Urutkan berdasarkan pesan terakhir atau update chatroom
 
 $stmt = mysqli_prepare($koneksi, $query);
 if (!$stmt) {
     die("Error prepared statement: " . mysqli_error($koneksi));
 }
 
+// Bind parameter untuk dua kali id user login (untuk CASE di SELECT) dan dua kali untuk WHERE
 mysqli_stmt_bind_param($stmt, "iiii", $current_user_id, $current_user_id, $current_user_id, $current_user_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -69,22 +72,31 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesapean - Pesan Admin</title>
-    <link rel="stylesheet" href="../style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>Pesapean - Pesan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
     <style>
-        /* CSS dari admin/beranda.php atau style.css untuk konsistensi */
+        /* Variabel warna global - PASTIKAN SESUAI DENGAN style.css atau tambahkan di sini */
         :root {
             --primary-color: rgb(240, 161, 44);
+            /* Biru utama */
             --secondary-color: rgb(48, 52, 56);
+            /* Hijau */
             --tertiary-color: #6c757d;
+            /* Abu-abu */
             --dark-color: #333;
+            /* Warna gelap untuk navbar */
             --dark-text: #212529;
             --light-bg: #f8f9fa;
+            /* Tambahkan ini jika belum ada */
             --white-bg: #ffffff;
-            --border-color: #dee2e6;
+            /* Tambahkan ini jika belum ada */
+            --dark-navbar-bg: rgb(56, 59, 61);
+            /* Warna hitam untuk navbar */
+
+            --border-color: rgb(7, 28, 48);
             --box-shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
             --box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.15);
             --border-radius-sm: 8px;
@@ -100,10 +112,13 @@ if (!$result) {
         }
 
         .main-header {
-            background-color: var(--white-bg);
+            background-color: var(--dark-navbar-bg);
+            /* Menggunakan variabel warna hitam */
             border-bottom: 1px solid var(--border-color);
+            /* Bisa disesuaikan jika perlu */
             padding: 1rem 0;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            /* Bisa disesuaikan agar cocok dengan latar belakang gelap */
         }
 
         .navbar {
@@ -120,6 +135,7 @@ if (!$result) {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--primary-color);
+            /* Tetap kuning agar kontras */
             text-decoration: none;
             transition: color 0.3s ease;
         }
@@ -134,7 +150,8 @@ if (!$result) {
 
         .nav-links li a {
             text-decoration: none;
-            color: var(--dark-color);
+            color: white;
+            /* Ubah warna teks link menjadi putih agar terlihat di latar belakang hitam */
             font-weight: 600;
             padding: 0.5rem 0;
             transition: color 0.3s ease, border-bottom 0.3s ease;
@@ -143,6 +160,7 @@ if (!$result) {
         .nav-links li a:hover,
         .nav-links li a.active {
             color: var(--primary-color);
+            /* Tetap kuning untuk hover dan active */
             border-bottom: 2px solid var(--primary-color);
         }
 
@@ -262,11 +280,14 @@ if (!$result) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="beranda.php">Pesapean</a>
+                <a href="../penjual/beranda.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="beranda.php">Beranda Admin</a></li>
-                <li><a href="pesan.php" class="active">Pesan</a></li>
+                <li><a href="../penjual/beranda.php">Beranda</a></li>
+                <li><a href="../penjual/peta.php">Peta Interaktif</a></li>
+                <li><a href="../penjual/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../penjual/lelang.php">Lelang</a></li>
+                <li><a href="../penjual/pesan.php" class="active">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php
@@ -284,27 +305,20 @@ if (!$result) {
     <div class="main-content">
         <div class="container">
             <div class="messages-container">
-                <h2><i class="fas fa-envelope me-2"></i> Pesan Anda (Admin)</h2>
+                <h2><i class="fas fa-envelope me-2"></i> Pesan Anda</h2>
                 <?php if (mysqli_num_rows($result) > 0): ?>
                     <?php while ($chat = mysqli_fetch_assoc($result)): ?>
                         <?php
+                        // Tentukan ID lawan bicara untuk link ke chat.php
                         $chat_partner_id_for_link = ($chat['user1_id'] == $current_user_id) ? $chat['user2_id'] : $chat['user1_id'];
-
-                        // Tentukan teks tambahan berdasarkan jenis chat
-                        $chat_identifier = '';
-                        if ($chat['chat_type'] == 'sapi_chat' && !empty($chat['id_sapi'])) {
-                            $sapi_display = ($chat['sapi_jenis_sapi'] ?? 'Sapi') . ' - ' . ($chat['sapi_jenis_kelamin'] ?? '');
-                            $chat_identifier = ' (Sapi: ' . htmlspecialchars($sapi_display) . ')';
-                        } else if ($chat['chat_type'] == 'admin_chat') {
-                            $chat_identifier = ' (Chat Admin)';
-                        }
+                        $sapi_display = ($chat['sapi_jenis_sapi'] ?? 'Sapi') . ' - ' . ($chat['sapi_jenis_kelamin'] ?? 'Jenis');
                         ?>
-                        <a href="chat.php?sapi_id=<?= htmlspecialchars($chat['id_sapi'] ?? '0') ?>&recipient_id=<?= htmlspecialchars($chat_partner_id_for_link) ?>&chat_type=<?= htmlspecialchars($chat['chat_type']) ?>" class="chat-list-item">
+                        <a href="chat.php?sapi_id=<?= htmlspecialchars($chat['id_sapi']) ?>&recipient_id=<?= htmlspecialchars($chat_partner_id_for_link) ?>" class="chat-list-item">
                             <div class="chat-avatar">
                                 <?= strtoupper(substr($chat['chat_partner_username'], 0, 1)) ?>
                             </div>
                             <div class="chat-details">
-                                <h5><?= htmlspecialchars($chat['chat_partner_username']) ?> <small class="text-muted"><?= $chat_identifier ?></small></h5>
+                                <h5><?= htmlspecialchars($chat['chat_partner_username']) ?> <small class="text-muted">(Sapi: <?= htmlspecialchars($sapi_display) ?>)</small></h5>
                                 <p><?= htmlspecialchars($chat['last_message'] ?? 'Belum ada pesan.') ?></p>
                             </div>
                             <div class="chat-time">
@@ -318,7 +332,7 @@ if (!$result) {
                     <?php endwhile; ?>
                 <?php else: ?>
                     <div class="alert alert-info text-center" role="alert">
-                        <i class="fas fa-info-circle me-2"></i> Belum ada percakapan untuk Anda sebagai Admin.
+                        <i class="fas fa-info-circle me-2"></i> Belum ada percakapan.
                     </div>
                 <?php endif; ?>
             </div>
