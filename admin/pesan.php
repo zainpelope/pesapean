@@ -284,7 +284,7 @@ if (!$result) {
     <div class="main-content">
         <div class="container">
             <div class="messages-container">
-                <h2><i class="fas fa-envelope me-2"></i> Pesan Anda (Admin)</h2>
+                <h2><i class="fas fa-envelope me-2"></i> Pesan Anda</h2>
                 <?php if (mysqli_num_rows($result) > 0): ?>
                     <?php while ($chat = mysqli_fetch_assoc($result)): ?>
                         <?php
@@ -296,10 +296,10 @@ if (!$result) {
                             $sapi_display = ($chat['sapi_jenis_sapi'] ?? 'Sapi') . ' - ' . ($chat['sapi_jenis_kelamin'] ?? '');
                             $chat_identifier = ' (Sapi: ' . htmlspecialchars($sapi_display) . ')';
                         } else if ($chat['chat_type'] == 'admin_chat') {
-                            $chat_identifier = ' (Chat Admin)';
+                            $chat_identifier = '';
                         }
                         ?>
-                        <a href="chat.php?sapi_id=<?= htmlspecialchars($chat['id_sapi'] ?? '0') ?>&recipient_id=<?= htmlspecialchars($chat_partner_id_for_link) ?>&chat_type=<?= htmlspecialchars($chat['chat_type']) ?>" class="chat-list-item">
+                        <a href="chat_admin.php?sapi_id=<?= htmlspecialchars($chat['id_sapi'] ?? '0') ?>&recipient_id=<?= htmlspecialchars($chat_partner_id_for_link) ?>&chat_type=<?= htmlspecialchars($chat['chat_type']) ?>" class="chat-list-item">
                             <div class="chat-avatar">
                                 <?= strtoupper(substr($chat['chat_partner_username'], 0, 1)) ?>
                             </div>

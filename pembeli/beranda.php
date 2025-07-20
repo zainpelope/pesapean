@@ -118,9 +118,7 @@ if ($koneksi) {
             <div class="hero-content">
                 <h1>Pesapean (Preferensi Sapi dan Penjualan)</h1>
                 <p>Website ini membantu anda dalam menentukan preferensi sapi dan penjualan yang anda inginkan.</p>
-                <a href="chat_admin.php?recipient_id=1;
-                                                        echo htmlspecialchars($admin_id_for_chat);
-                                                        ?>" class="btn btn-secondary">Join With Us</a>
+                <a href="chat_admin.php" class="btn btn-secondary">Join With Us</a>
             </div>
         </section>
 

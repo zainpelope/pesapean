@@ -1,32 +1,81 @@
 <?php
-// Aktifkan error reporting untuk debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Mulai sesi (penting untuk mengecek status login)
 session_start();
+include '../koneksi.php'; // Your database connection file
 
-// Include koneksi.php for database connection
-include '../koneksi.php';
+// Check if the user is logged in
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../auth/login.php");
+    exit();
+}
 
-// Inisialisasi $data dengan nilai default null
-$data = null;
+$current_user_id = $_SESSION['id_user'];
 
-// Pastikan koneksi berhasil sebelum menjalankan query
-if ($koneksi) {
-    // Ambil data terbaru dari tabel home
-    $query = "SELECT * FROM home ORDER BY id_home DESC LIMIT 1";
-    $result = mysqli_query($koneksi, $query);
+// Find the admin user ID. Assuming 'Admin' role has id_role = 1
+$admin_id = null;
+$query_admin_id = "SELECT id_user FROM users WHERE id_role = (SELECT id_role FROM role WHERE nama_role = 'Admin') LIMIT 1";
+$result_admin_id = mysqli_query($koneksi, $query_admin_id);
+if ($result_admin_id && mysqli_num_rows($result_admin_id) > 0) {
+    $admin_row = mysqli_fetch_assoc($result_admin_id);
+    $admin_id = $admin_row['id_user'];
+} else {
+    // Handle case where admin user is not found
+    die("Admin user not found. Please ensure an admin user exists in the database.");
+}
 
-    // Periksa apakah query berhasil dieksekusi dan data ditemukan
-    if ($result && mysqli_num_rows($result) > 0) {
-        $data = mysqli_fetch_assoc($result);
+// Check for an existing chat room between the current user and the admin
+$id_chat_room = null;
+$query_chatroom = "SELECT id_chatRooms FROM chatrooms 
+                   WHERE (user1_id = $current_user_id AND user2_id = $admin_id) 
+                   OR (user1_id = $admin_id AND user2_id = $current_user_id)
+                   LIMIT 1";
+$result_chatroom = mysqli_query($koneksi, $query_chatroom);
+
+if ($result_chatroom && mysqli_num_rows($result_chatroom) > 0) {
+    $chatroom_row = mysqli_fetch_assoc($result_chatroom);
+    $id_chat_room = $chatroom_row['id_chatRooms'];
+} else {
+    // If no chat room exists, create a new one
+    $insert_chatroom_query = "INSERT INTO chatrooms (user1_id, user2_id, chat_type, createdAt, updatedAt) 
+                              VALUES ($current_user_id, $admin_id, 'admin_chat', NOW(), NOW())";
+    if (mysqli_query($koneksi, $insert_chatroom_query)) {
+        $id_chat_room = mysqli_insert_id($koneksi); // Get the ID of the newly created chat room
+    } else {
+        die("Error creating chat room: " . mysqli_error($koneksi));
     }
 }
 
-// Definisikan ID admin untuk chat
-$admin_id_for_chat = 7; // Mengacu pada id_user admin dari database dump Anda
+// Handle sending messages
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['message_content'])) {
+    $message_content = mysqli_real_escape_string($koneksi, $_POST['message_content']);
+    if (!empty($message_content) && $id_chat_room) {
+        $insert_message_query = "INSERT INTO chatmessage (id_chatRooms, sender_id, pesan, waktu_kirim) 
+                                 VALUES ($id_chat_room, $current_user_id, '$message_content', NOW())";
+        if (!mysqli_query($koneksi, $insert_message_query)) {
+            echo "Error sending message: " . mysqli_error($koneksi);
+        }
+    }
+    // Redirect to prevent form resubmission on refresh
+    header("Location: chat_admin.php");
+    exit();
+}
+
+// Fetch chat messages
+$messages = [];
+if ($id_chat_room) {
+    $query_messages = "SELECT cm.pesan, cm.waktu_kirim, u.username AS sender_username, u.id_user AS sender_id
+                       FROM chatmessage cm
+                       JOIN users u ON cm.sender_id = u.id_user
+                       WHERE cm.id_chatRooms = $id_chat_room
+                       ORDER BY cm.waktu_kirim ASC";
+    $result_messages = mysqli_query($koneksi, $query_messages);
+    if ($result_messages) {
+        while ($row = mysqli_fetch_assoc($result_messages)) {
+            $messages[] = $row;
+        }
+    } else {
+        echo "Error fetching messages: " . mysqli_error($koneksi);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -35,117 +84,157 @@ $admin_id_for_chat = 7; // Mengacu pada id_user admin dari database dump Anda
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesapean - Preferensi Sapi dan Penjualan</title>
+    <title>Chat with Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../style.css">
     <style>
-        /* Optional: Add some minor styling if needed for the login/profile buttons */
-        .auth-links {
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
             display: flex;
-            gap: 10px;
-            /* Jarak antar tombol */
-            align-items: center;
+            flex-direction: column;
+            height: 70vh;
+            /* Adjust as needed */
         }
 
-        .auth-links .btn {
-            padding: 8px 15px;
-            border-radius: 5px;
-            text-decoration: none;
+        .chat-header {
+            background-color: rgb(204, 145, 96);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
             font-weight: 600;
+            border-bottom: 1px solid #dee2e6;
         }
 
-        .auth-links .btn-primary {
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .message-bubble {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .message-bubble.sent {
+            justify-content: flex-end;
+        }
+
+        .message-bubble.received {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 70%;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+        }
+
+        .message-bubble.sent .message-content {
+            background-color: rgb(204, 145, 96);
+            color: white;
+        }
+
+        .message-bubble.received .message-content {
+            background-color: #e2e6ea;
+            color: #333;
+        }
+
+        .message-info {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 5px;
+            text-align: right;
+            /* For sent messages */
+        }
+
+        .message-bubble.received .message-info {
+            text-align: left;
+            /* For received messages */
+        }
+
+        .chat-input {
+            padding: 15px 20px;
+            background-color: #f1f3f4;
+            display: flex;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .chat-input input[type="text"] {
+            flex-grow: 1;
+            border: 1px solid #ced4da;
+            border-radius: 25px;
+            padding: 10px 15px;
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+
+        .chat-input button {
             background-color: rgb(204, 145, 96);
             color: white;
             border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
         }
 
-        .auth-links .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-        .auth-links .btn-outline-primary {
-            background-color: transparent;
-            color: #007bff;
-            border: 1px solid #007bff;
-        }
-
-        .auth-links .btn-outline-primary:hover {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .auth-links .btn-danger {
-            /* For Logout button */
-            background-color: #dc3545;
-            color: white;
-            border: none;
-        }
-
-        .auth-links .btn-danger:hover {
-            background-color: #c82333;
+        .chat-input button:hover {
+            background-color: #e09b5f;
         }
     </style>
 </head>
 
 <body>
-    <header class="main-header">
-        <nav class="navbar">
-            <div class="logo">
-                <a href="../pembeli/beranda.php">Pesapean</a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="../pembeli/beranda.php">Beranda</a></li>
-                <li><a href="../pembeli/peta.php">Peta Interaktif</a></li>
-                <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
-                <li><a href="../pembeli/lelang.php">Lelang</a></li>
-                <li><a href="../pembeli/pesan.php">Pesan</a></li>
-            </ul>
-            <div class="auth-links">
-                <?php if (isset($_SESSION['id_user'])): ?>
-                    <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
+    <div class="chat-container">
+        <div class="chat-header">
+            Chat with Admin
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <?php if (empty($messages)): ?>
+                <p class="text-center text-muted">Start a conversation with the admin!</p>
+            <?php else: ?>
+                <?php foreach ($messages as $message): ?>
+                    <div class="message-bubble <?php echo ($message['sender_id'] == $current_user_id) ? 'sent' : 'received'; ?>">
+                        <div>
+                            <div class="message-content">
+                                <?php echo htmlspecialchars($message['pesan']); ?>
+                            </div>
+                            <div class="message-info">
+                                <?php echo htmlspecialchars($message['sender_username']); ?> - <?php echo date('H:i', strtotime($message['waktu_kirim'])); ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        <div class="chat-input">
+            <form action="chat_admin.php" method="POST" style="display: flex; width: 100%;">
+                <input type="text" name="message_content" placeholder="Type your message..." required>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
 
-                <?php else: ?>
-                    <a href="../auth/login.php" class="btn btn-primary">Login</a>
-                    <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
-                <?php endif; ?>
-            </div>
-        </nav>
-    </header>
-
-    <main>
-        <section id="home" class="hero-section">
-            <img src="../sapi.jpg" alt="Two cows adorned for an event" class="hero-image">
-            <div class="hero-content">
-                <h1>Pesapean (Preferensi Sapi dan Penjualan)</h1>
-                <p>Website ini membantu anda dalam menentukan preferensi sapi dan penjualan yang anda inginkan.</p>
-                <a href="../pembeli/chat_admin.php?recipient_id=<?php echo htmlspecialchars($admin_id_for_chat); ?>" class="btn btn-secondary">Join With Us</a>
-            </div>
-        </section>
-
-        <section id="about" class="about-section">
-            <div class="about-image">
-                <?php if ($data && isset($data['gambar'])): ?>
-                    <img src="../uploads/<?php echo htmlspecialchars($data['gambar']); ?>" alt="A decorated cow">
-                <?php else: ?>
-                    <img src="placeholder.jpg" alt="No Image Available">
-                <?php endif; ?>
-            </div>
-            <div class="about-text">
-                <h2>Tentang Sape Sonok</h2>
-                <?php if ($data && isset($data['sejarah'])): ?>
-                    <p><?php echo nl2br(htmlspecialchars($data['sejarah'])); ?></p>
-                <?php else: ?>
-                    <p>Informasi tentang Sape Sonok belum tersedia. Silakan cek kembali nanti.</p>
-                <?php endif; ?>
-            </div>
-        </section>
-        <?php include '../tim_kami.php'; ?>
-    </main>
-
-    <?php include '../footer.php'; ?>
+    <script>
+        // Auto-scroll to the bottom of the chat messages
+        var chatMessages = document.getElementById("chatMessages");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    </script>
 </body>
 
 </html>
