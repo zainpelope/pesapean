@@ -62,98 +62,200 @@ mysqli_close($koneksi);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Pengguna</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient to bottom right, #6a11cb, #2575fc);
+            /* Modern gradient background */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
             flex-direction: column;
-            /* Untuk menumpuk elemen secara vertikal */
-        }
-
-        .profile-container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            margin-bottom: 20px;
-            /* Jarak antara container profil dan link di bawahnya */
-        }
-
-        .profile-container h2 {
-            text-align: center;
-            margin-bottom: 25px;
             color: #333;
         }
 
+        .profile-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            /* Stronger, softer shadow */
+            width: 450px;
+            max-width: 90%;
+            /* Responsive width */
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            /* For subtle background effects */
+        }
+
+        .profile-container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(106, 17, 203, 0.05);
+            /* Light accent circle */
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .profile-container::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: rgba(37, 117, 252, 0.05);
+            /* Light accent circle */
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .profile-content {
+            position: relative;
+            /* To bring content above pseudo-elements */
+            z-index: 1;
+        }
+
+        .profile-container h2 {
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
         .profile-info p {
-            margin-bottom: 10px;
-            line-height: 1.6;
+            margin-bottom: 15px;
+            line-height: 1.8;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+            /* Aligns label and value */
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            /* Subtle separator */
+        }
+
+        .profile-info p:last-child {
+            border-bottom: none;
+            /* No border for the last item */
         }
 
         .profile-info p strong {
-            display: inline-block;
-            width: 120px;
-            /* Lebar tetap untuk label agar rapi */
+            font-weight: 600;
             color: #555;
+            flex-basis: 40%;
+            /* Adjust width for labels */
+            text-align: left;
+        }
+
+        .profile-info p span {
+            flex-basis: 60%;
+            /* Adjust width for values */
+            text-align: right;
+            color: #666;
         }
 
         .action-links {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            /* Space between buttons */
         }
 
         .action-links a {
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 12px 25px;
+            border-radius: 8px;
             text-decoration: none;
-            transition: background-color 0.3s ease;
-            display: inline-block;
-            /* Agar bisa berdampingan jika ada beberapa link */
-            margin: 0 5px;
-            /* Jarak antar tombol */
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 1em;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .back-link a {
-            background-color: #007bff;
+            background-color: #2575fc;
+            /* Primary blue */
             color: white;
         }
 
         .back-link a:hover {
-            background-color: #0056b3;
+            background-color: #1a5acb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(37, 117, 252, 0.3);
         }
 
         .logout-link a {
             background-color: #dc3545;
-            /* Warna merah untuk logout */
+            /* Red for danger/logout */
             color: white;
         }
 
         .logout-link a:hover {
             background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .profile-container {
+                padding: 25px;
+            }
+
+            .profile-info p {
+                flex-direction: column;
+                /* Stack label and value on small screens */
+                align-items: flex-start;
+            }
+
+            .profile-info p strong,
+            .profile-info p span {
+                flex-basis: auto;
+                width: 100%;
+                text-align: left;
+            }
+
+            .action-links {
+                flex-direction: column;
+                /* Stack buttons on small screens */
+            }
+
+            .action-links a {
+                width: 100%;
+                margin: 5px 0;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="profile-container">
-        <h2>Profil Pengguna</h2>
-        <?php if ($user_data): ?>
-            <div class="profile-info">
-                <p><strong>Username:</strong> <?php echo htmlspecialchars($user_data['username']); ?></p>
-                <p><strong>Email:</strong> <?php echo htmlspecialchars($user_data['email']); ?></p>
-                <p><strong>Peran:</strong> <?php echo htmlspecialchars($user_data['nama_role']); ?></p>
-                <p><strong>Terdaftar Sejak:</strong> <?php echo htmlspecialchars($user_data['createdAt']); ?></p>
-                <p><strong>Terakhir Diperbarui:</strong> <?php echo htmlspecialchars($user_data['updateAt']); ?></p>
-            </div>
-        <?php else: ?>
-            <p style="text-align: center; color: red;">Maaf, data profil tidak dapat dimuat.</p>
-        <?php endif; ?>
+        <div class="profile-content">
+            <h2>Profil Pengguna</h2>
+            <?php if ($user_data): ?>
+                <div class="profile-info">
+                    <p><strong>Username:</strong> <span><?php echo htmlspecialchars($user_data['username']); ?></span></p>
+                    <p><strong>Email:</strong> <span><?php echo htmlspecialchars($user_data['email']); ?></span></p>
+                    <p><strong>Peran:</strong> <span><?php echo htmlspecialchars($user_data['nama_role']); ?></span></p>
+                    <p><strong>Terdaftar Sejak:</strong> <span><?php echo htmlspecialchars($user_data['createdAt']); ?></span></p>
+                    <p><strong>Terakhir Diperbarui:</strong> <span><?php echo htmlspecialchars($user_data['updateAt']); ?></span></p>
+                </div>
+            <?php else: ?>
+                <p style="text-align: center; color: red;">Maaf, data profil tidak dapat dimuat.</p>
+            <?php endif; ?>
+        </div>
     </div>
 
     <div class="action-links">
