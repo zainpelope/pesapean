@@ -32,7 +32,6 @@ $query = mysqli_query($koneksi, "
         ds.*,
         ms.name AS kategori,
         l.id_lelang,
-        l.harga_awal,
         l.harga_tertinggi,
         l.status,
         l.batas_waktu,
@@ -268,7 +267,7 @@ $loggedInUserId = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
                         <?= htmlspecialchars($sapi['status']); ?>
                     </span>
                 </p>
-                <p><span class="label">Nilai Limit:</span> Rp<?= number_format($sapi['harga_awal']); ?></p>
+
                 <p><span class="label">Harga Tertinggi Saat Ini:</span> Rp<?= number_format($sapi['harga_tertinggi']); ?></p>
                 <p><span class="label">Batas Waktu:</span> <?= date("d M Y H:i", strtotime($sapi['batas_waktu'])); ?></p>
                 <?php if (!empty($sapi['nama_penawar_tertinggi'])): ?>

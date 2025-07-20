@@ -33,10 +33,9 @@ $queryDataSapi = mysqli_query($koneksi, "
     SELECT
         ds.id_sapi,
         ds.foto_sapi,
-        ds.alamat_pemilik,
+        ds.nama_pemilik,
         ms.name AS kategori,
-        l.id_lelang,
-        l.harga_awal,
+        l.id_lelang,  
         l.harga_tertinggi,
         l.status,
         l.batas_waktu,
@@ -263,12 +262,12 @@ $queryDataSapi = mysqli_query($koneksi, "
                         </div>
                         <img src="../uploads_sapi/<?= htmlspecialchars($sapi['foto_sapi']); ?>" class="card-img-top" alt="gambar sapi" style="height: 200px; object-fit: cover;">
                         <div class="card-body">
-                            <p class="card-text text-center text-muted small mb-1"><?= htmlspecialchars($sapi['alamat_pemilik']); ?></p>
+                            <p class="card-text text-center text-muted small mb-1"><?= htmlspecialchars($sapi['nama_pemilik']); ?></p>
                             <p class="card-text text-center small mb-2">
-                                Nilai limit: <strong>Rp<?= number_format($sapi['harga_awal']); ?></strong><br>
+
                                 Harga tertinggi: <strong>Rp<?= number_format($sapi['harga_tertinggi']); ?></strong>
                             </p>
-                            <?php if ($sapi['status'] == 'Aktif' || $sapi['status'] == 'Sedang') : // Tampilkan informasi penawar tertinggi hanya jika lelang aktif/sedang
+                            <?php if ($sapi['status'] == 'Aktif' || $sapi['status'] == 'Sedang') : // Tampilkan informasi penawar tertinggi hanya jika lelang aktif/sedang 
                             ?>
                                 <?php if (!empty($sapi['nama_penawar_tertinggi'])) : ?>
                                     <p class="card-text text-center small mt-2">
