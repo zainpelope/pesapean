@@ -1,39 +1,29 @@
 <?php
-include '../koneksi.php'; // Adjust path as needed
+include '../koneksi.php'; // Adjust path to your koneksi.php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 if (isset($_GET['id'])) {
-    $id_home = mysqli_real_escape_string($koneksi, $_GET['id']);
+    $id = $_GET['id'];
 
-    // First, get the image name to delete the file
-    $sql_select_image = "SELECT gambar FROM home WHERE id_home = '$id_home'";
-    $result_select_image = mysqli_query($koneksi, $sql_select_image);
+    // Using prepared statements for security
+    $sql = "DELETE FROM home WHERE id_home = ?"; // Assuming 'id_home' is your primary key
+    $stmt = mysqli_prepare($koneksi, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $id); // 'i' for integer type
 
-    if ($result_select_image && mysqli_num_rows($result_select_image) > 0) {
-        $row = mysqli_fetch_assoc($result_select_image);
-        $image_to_delete = $row['gambar'];
-
-        // Delete data from database
-        $sql_delete = "DELETE FROM home WHERE id_home = '$id_home'";
-        $result_delete = mysqli_query($koneksi, $sql_delete);
-
-        if ($result_delete) {
-            // Delete the image file from the server
-            if (!empty($image_to_delete) && file_exists("../uploads/" . $image_to_delete)) {
-                unlink("../uploads/" . $image_to_delete);
-            }
-            echo "✅ Data berhasil dihapus.";
-        } else {
-            echo "❌ Gagal menghapus data: " . mysqli_error($koneksi);
-        }
+    if (mysqli_stmt_execute($stmt)) {
+        echo "✅ Data berhasil dihapus.";
+        // JavaScript redirect after success
+        echo '<script>
+                setTimeout(function() {
+                    window.location.href = "../admin/admin.php";
+                }, 1000); // Redirect after 1 second
+              </script>';
     } else {
-        echo "❌ Data tidak ditemukan untuk dihapus.";
+        echo "❌ Gagal menghapus data: " . mysqli_error($koneksi);
     }
+    mysqli_stmt_close($stmt);
 } else {
-    echo "❌ ID data tidak ditemukan.";
+    echo "ID tidak ditemukan.";
 }
-
-mysqli_close($koneksi);
-echo "<br><a href='../admin/admin.php'>Kembali ke Halaman Utama</a>";
