@@ -46,35 +46,71 @@ if ($jenis != '') {
         if ($kategori) {
             $id_macam = $kategori['id_macamSapi'];
 
-            // Fetch cattle data from 'data_sapi' based on 'macamSapi' AND 'id_user_penjual'
-            // Only show cattle that are NOT yet in the 'lelang' table (meaning they haven't been auctioned)
-            $queryData = "
-                SELECT ds.id_sapi, ds.nama_pemilik, ds.harga_sapi
-                FROM data_sapi ds
-                LEFT JOIN lelang l ON ds.id_sapi = l.id_sapi
-                WHERE ds.id_macamSapi = ?
-                  AND ds.id_user_penjual = ?
-                  AND l.id_sapi IS NULL -- Key condition: lelang.id_sapi must be NULL (not yet in auction)
-            ";
-            $stmt_data = mysqli_prepare($koneksi, $queryData);
+            // Determine the specific cattle table name based on $jenis
+            $specific_sapi_table = '';
+            switch ($jenis) {
+                case 'Sapi Sonok':
+                    $specific_sapi_table = 'sapisonok';
+                    break;
+                case 'Sapi Kerap':
+                    $specific_sapi_table = 'sapikerap';
+                    break;
+                case 'Sapi Tangghek':
+                    $specific_sapi_table = 'sapitangghek';
+                    break;
+                case 'Sapi Ternak':
+                    $specific_sapi_table = 'sapiternak';
+                    break;
+                case 'Sapi Potong':
+                    $specific_sapi_table = 'sapipotong';
+                    break;
+                default:
+                    // Handle unknown type or log an error
+                    $specific_sapi_table = '';
+                    break;
+            }
 
-            if ($stmt_data) {
-                mysqli_stmt_bind_param($stmt_data, "ii", $id_macam, $id_user_penjual_login);
-                mysqli_stmt_execute($stmt_data);
-                $result_data = mysqli_stmt_get_result($stmt_data);
+            if ($specific_sapi_table != '') {
+                // Fetch cattle data from 'data_sapi' AND the specific cattle table
+                // Only show cattle that are NOT yet in the 'lelang' table
+                $queryData = "
+                    SELECT ds.id_sapi, ds.nama_pemilik, ss.nama_sapi, ds.harga_sapi
+                    FROM data_sapi ds
+                    LEFT JOIN $specific_sapi_table ss ON ds.id_sapi = ss.id_sapi
+                    LEFT JOIN lelang l ON ds.id_sapi = l.id_sapi
+                    WHERE ds.id_macamSapi = ?
+                      AND ds.id_user_penjual = ?
+                      AND l.id_sapi IS NULL
+                ";
+                $stmt_data = mysqli_prepare($koneksi, $queryData);
 
-                while ($row = mysqli_fetch_assoc($result_data)) {
-                    $dataSapi[] = $row;
+                if ($stmt_data) {
+                    mysqli_stmt_bind_param($stmt_data, "ii", $id_macam, $id_user_penjual_login);
+                    mysqli_stmt_execute($stmt_data);
+                    $result_data = mysqli_stmt_get_result($stmt_data);
+
+                    while ($row = mysqli_fetch_assoc($result_data)) {
+                        $dataSapi[] = $row;
+                    }
+                    mysqli_stmt_close($stmt_data);
+                } else {
+                    die("Error prepared statement for data sapi: " . mysqli_error($koneksi));
                 }
-                mysqli_stmt_close($stmt_data);
             } else {
-                die("Error prepared statement for data sapi: " . mysqli_error($koneksi));
+                // If specific_sapi_table is empty, it means an invalid 'jenis' was provided.
+                echo "<p class='alert alert-warning'>Jenis sapi tidak dikenali atau tidak ada data terkait.</p>";
             }
         }
     } else {
         die("Error prepared statement for category: " . mysqli_error($koneksi));
     }
 }
+
+// Set default current datetime for 'batas_waktu' input
+$currentDateTime = new DateTime();
+// Set timezone to WIB (Western Indonesian Time) which is UTC+7
+$currentDateTime->setTimezone(new DateTimeZone('Asia/Jakarta'));
+$defaultBatasWaktu = $currentDateTime->format('Y-m-d\TH:i');
 ?>
 
 <!DOCTYPE html>
@@ -96,6 +132,8 @@ if ($jenis != '') {
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            /* Needed for absolute positioning of the close button */
         }
 
         h3 {
@@ -111,17 +149,34 @@ if ($jenis != '') {
         .btn-primary {
             background-color: #007bff;
             border-color: #007bff;
+            width: 100%;
+            /* Make button full width */
         }
 
         .btn-primary:hover {
             background-color: #0056b3;
             border-color: #0056b3;
         }
+
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: #6c757d;
+        }
+
+        .close-button:hover {
+            color: #343a40;
+        }
     </style>
 </head>
 
 <body class="bg-light">
     <div class="container mt-4">
+        <a href="javascript:history.back()" class="close-button" aria-label="Close">&times;</a>
+
         <h3>Pendaftaran Lelang Sapi</h3>
 
         <form method="GET" class="row g-3 mb-4">
@@ -150,7 +205,7 @@ if ($jenis != '') {
                         <?php else: ?>
                             <?php foreach ($dataSapi as $sapi) : ?>
                                 <option value="<?= htmlspecialchars($sapi['id_sapi']); ?>">
-                                    <?= "ID: {$sapi['id_sapi']} - Pemilik: {$sapi['nama_pemilik']} - Harga: Rp" . number_format($sapi['harga_sapi']); ?>
+                                    <?= "Nama Sapi: " . htmlspecialchars($sapi['nama_sapi']) . " - Pemilik: " . htmlspecialchars($sapi['nama_pemilik']) . " - Harga: Rp" . number_format($sapi['harga_sapi']); ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -169,7 +224,7 @@ if ($jenis != '') {
 
                 <div class="mb-3">
                     <label class="form-label">Batas Waktu</label>
-                    <input type="datetime-local" name="batas_waktu" class="form-control" required>
+                    <input type="datetime-local" name="batas_waktu" class="form-control" value="<?= $defaultBatasWaktu; ?>" required>
                 </div>
 
                 <div class="mb-3">
