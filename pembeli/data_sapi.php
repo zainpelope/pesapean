@@ -387,8 +387,8 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                     echo '<a href="../profile.php" class="btn btn-primary">Profile</a>';
                 } else {
                     // User is not logged in, display Login and Daftar buttons
-                    echo '<a href="../login.php" class="btn btn-primary">Login</a>';
-                    echo '<a href="../register.php" class="btn btn-outline-primary">Daftar</a>';
+                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
+                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>';
                 }
                 ?>
             </div>

@@ -130,6 +130,7 @@ if (!$result_users) {
         <div class="mb-6">
             <a href="manage_user.php?action=add" class="btn btn-primary">Tambah Pengguna Baru</a>
         </div>
+        <br>
 
         <div class="overflow-x-auto rounded-lg shadow-md">
             <table class="min-w-full bg-white rounded-lg overflow-hidden">

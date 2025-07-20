@@ -6,7 +6,7 @@ $id_user = isset($_GET['id']) ? (int)$_GET['id'] : 0; // Mengambil ID pengguna j
 
 $username = '';
 $email = '';
-$password = '';
+$password = ''; // Variabel ini hanya akan diisi saat penambahan
 $message = ''; // Pesan untuk feedback pengguna
 
 // --- Ambil ID Role untuk 'Penjual' secara otomatis ---
@@ -55,33 +55,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4'>Format email tidak valid.</div>";
     } else {
         if ($action == 'add') {
-            $password = password_hash(trim($_POST['password']), PASSWORD_DEFAULT); // Hash password
-            $createdAt = date('Y-m-d H:i:s');
-
-            // Memeriksa apakah username atau email sudah ada
-            $check_query = "SELECT id_user FROM users WHERE username = ? OR email = ?";
-            $stmt_check = mysqli_prepare($koneksi, $check_query);
-            mysqli_stmt_bind_param($stmt_check, "ss", $username, $email);
-            mysqli_stmt_execute($stmt_check);
-            mysqli_stmt_store_result($stmt_check);
-
-            if (mysqli_stmt_num_rows($stmt_check) > 0) {
-                $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4'>Username atau Email sudah terdaftar.</div>";
+            // Pastikan password diisi saat menambah pengguna baru
+            if (empty($_POST['password'])) {
+                $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4'>Password harus diisi saat menambahkan pengguna baru.</div>";
             } else {
-                // Gunakan id_role_penjual yang sudah diambil
-                $insert_query = "INSERT INTO users (username, email, password, id_role, createdAt) VALUES (?, ?, ?, ?, ?)";
-                $stmt = mysqli_prepare($koneksi, $insert_query);
-                mysqli_stmt_bind_param($stmt, "sssis", $username, $email, $password, $id_role_penjual, $createdAt);
+                // BARIS INI YANG DIUBAH: Mengambil password langsung tanpa hashing
+                $password = trim($_POST['password']);
+                // BARIS SEBELUMNYA: $password = password_hash(trim($_POST['password']), PASSWORD_DEFAULT); // Hash password
 
-                if (mysqli_stmt_execute($stmt)) {
-                    // Redirect ke ../admin/data_user.php setelah berhasil tambah
-                    header("Location: ../admin/data_user.php?message=" . urlencode("Pengguna berhasil ditambahkan sebagai Penjual."));
-                    exit(); // Penting untuk menghentikan eksekusi script setelah redirect
+                $createdAt = date('Y-m-d H:i:s');
+
+                // Memeriksa apakah username atau email sudah ada
+                $check_query = "SELECT id_user FROM users WHERE username = ? OR email = ?";
+                $stmt_check = mysqli_prepare($koneksi, $check_query);
+                mysqli_stmt_bind_param($stmt_check, "ss", $username, $email);
+                mysqli_stmt_execute($stmt_check);
+                mysqli_stmt_store_result($stmt_check);
+
+                if (mysqli_stmt_num_rows($stmt_check) > 0) {
+                    $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4'>Username atau Email sudah terdaftar.</div>";
                 } else {
-                    $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4'>Gagal menambahkan pengguna: " . mysqli_error($koneksi) . "</div>";
+                    // Gunakan id_role_penjual yang sudah diambil
+                    $insert_query = "INSERT INTO users (username, email, password, id_role, createdAt) VALUES (?, ?, ?, ?, ?)";
+                    $stmt = mysqli_prepare($koneksi, $insert_query);
+                    mysqli_stmt_bind_param($stmt, "sssis", $username, $email, $password, $id_role_penjual, $createdAt);
+
+                    if (mysqli_stmt_execute($stmt)) {
+                        // Redirect ke ../admin/data_user.php setelah berhasil tambah
+                        header("Location: ../admin/data_user.php?message=" . urlencode("Pengguna berhasil ditambahkan sebagai Penjual."));
+                        exit(); // Penting untuk menghentikan eksekusi script setelah redirect
+                    } else {
+                        $message = "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4'>Gagal menambahkan pengguna: " . mysqli_error($koneksi) . "</div>";
+                    }
                 }
+                mysqli_stmt_close($stmt_check);
             }
-            mysqli_stmt_close($stmt_check);
         } elseif ($action == 'edit') {
             $updateAt = date('Y-m-d H:i:s');
             // Role tidak diubah melalui form ini
@@ -215,7 +223,7 @@ if ($action == 'delete' && $id_user > 0) {
             <?php echo ($action == 'add') ? 'Tambah Pengguna Baru' : 'Edit Pengguna'; ?>
         </h1>
 
-        <?php echo $message; // Menampilkan pesan feedback 
+        <?php echo $message; // Menampilkan pesan feedback
         ?>
 
         <form action="manage_user.php<?php echo ($action == 'edit') ? '?action=edit&id=' . htmlspecialchars($id_user) : '?action=add'; ?>" method="POST">
@@ -227,7 +235,7 @@ if ($action == 'delete' && $id_user > 0) {
                 <label for="email" class="form-label">Email:</label>
                 <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" class="form-input" required>
             </div>
-            <?php if ($action == 'add'): // Password hanya diperlukan saat menambah pengguna baru 
+            <?php if ($action == 'add'): // Password hanya diperlukan saat menambah pengguna baru
             ?>
                 <div class="form-group">
                     <label for="password" class="form-label">Password:</label>
