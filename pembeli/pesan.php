@@ -17,13 +17,15 @@ $current_user_id = $_SESSION['id_user']; // ID pembeli yang sedang login
 
 // Query untuk mengambil semua chatroom di mana pembeli ini adalah salah satu pesertanya
 // (baik sebagai user1_id atau user2_id)
-// Kita juga mengambil informasi tentang lawan bicara (pengguna lain di chatroom, yaitu penjual)
-// dan informasi dasar tentang sapi yang terkait.
+// Kita juga mengambil informasi tentang lawan bicara (pengguna lain di chatroom)
+// dan informasi dasar tentang sapi yang terkait (jika ada).
+// Serta, ambil id_role dari lawan bicara.
 $query = "SELECT
             cr.id_chatRooms,
             cr.id_sapi,
             cr.user1_id,
             cr.user2_id,
+            cr.chat_type, -- Tambahkan chat_type
             ds.jenis_kelamin AS sapi_jenis_kelamin,
             ms.name AS sapi_jenis_sapi,
             CASE
@@ -34,6 +36,10 @@ $query = "SELECT
                 WHEN cr.user1_id = ? THEN cr.user2_id
                 ELSE cr.user1_id
             END AS chat_partner_id,
+            CASE
+                WHEN cr.user1_id = ? THEN u2.id_role
+                ELSE u1.id_role
+            END AS chat_partner_role_id, -- Tambahkan role_id lawan bicara
             (SELECT pesan FROM chatMessage WHERE id_chatRooms = cr.id_chatRooms ORDER BY waktu_kirim DESC LIMIT 1) AS last_message,
             (SELECT waktu_kirim FROM chatMessage WHERE id_chatRooms = cr.id_chatRooms ORDER BY waktu_kirim DESC LIMIT 1) AS last_message_time
           FROM
@@ -57,12 +63,25 @@ if (!$stmt) {
 }
 
 // Bind parameter untuk dua kali id user login (untuk CASE di SELECT) dan dua kali untuk WHERE
-mysqli_stmt_bind_param($stmt, "iiii", $current_user_id, $current_user_id, $current_user_id, $current_user_id);
+mysqli_stmt_bind_param($stmt, "iiiii", $current_user_id, $current_user_id, $current_user_id, $current_user_id, $current_user_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
 if (!$result) {
     die("Error fetching chatrooms: " . mysqli_error($koneksi));
+}
+
+// Dapatkan ID role Admin
+$admin_role_id = 0;
+$stmt_get_admin_role_id = mysqli_prepare($koneksi, "SELECT id_role FROM role WHERE nama_role = 'Admin'");
+if ($stmt_get_admin_role_id) {
+    mysqli_stmt_execute($stmt_get_admin_role_id);
+    $result_get_admin_role_id = mysqli_stmt_get_result($stmt_get_admin_role_id);
+    $admin_role_row = mysqli_fetch_assoc($result_get_admin_role_id);
+    if ($admin_role_row) {
+        $admin_role_id = $admin_role_row['id_role'];
+    }
+    mysqli_stmt_close($stmt_get_admin_role_id);
 }
 ?>
 
@@ -113,12 +132,9 @@ if (!$result) {
 
         .main-header {
             background-color: var(--dark-navbar-bg);
-            /* Menggunakan variabel warna hitam */
             border-bottom: 1px solid var(--border-color);
-            /* Bisa disesuaikan jika perlu */
             padding: 1rem 0;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            /* Bisa disesuaikan agar cocok dengan latar belakang gelap */
         }
 
         .navbar {
@@ -135,7 +151,6 @@ if (!$result) {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--primary-color);
-            /* Tetap kuning agar kontras */
             text-decoration: none;
             transition: color 0.3s ease;
         }
@@ -151,7 +166,6 @@ if (!$result) {
         .nav-links li a {
             text-decoration: none;
             color: white;
-            /* Ubah warna teks link menjadi putih agar terlihat di latar belakang hitam */
             font-weight: 600;
             padding: 0.5rem 0;
             transition: color 0.3s ease, border-bottom 0.3s ease;
@@ -160,7 +174,6 @@ if (!$result) {
         .nav-links li a:hover,
         .nav-links li a.active {
             color: var(--primary-color);
-            /* Tetap kuning untuk hover dan active */
             border-bottom: 2px solid var(--primary-color);
         }
 
@@ -264,7 +277,6 @@ if (!$result) {
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 90%;
-            /* Sesuaikan agar tidak terlalu lebar */
         }
 
         .chat-time {
@@ -280,24 +292,22 @@ if (!$result) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="beranda.php">Pesapean</a>
+                <a href="../admin/admin.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="beranda.php">Beranda</a></li>
-                <li><a href="peta.php">Peta Interaktif</a></li>
-                <li><a href="data_sapi.php?jenis=sonok">Data Sapi</a></li>
-                <li><a href="lelang.php">Lelang</a></li>
-                <li><a href="pesan.php" class="active">Pesan</a></li>
+                <li><a href="../admin/admin.php">Beranda</a></li>
+                <li><a href="../admin/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../admin/lelang.php">Lelang</a></li>
+                <li><a href="../admin/data_user.php">Data User</a></li>
+                <li><a href="../admin/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
-                <?php
-                if (isset($_SESSION['id_user'])) {
-                    echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>'; // Path ke profil, naik satu level
-                } else {
-                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>'; // Path ke login, naik satu level
-                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>'; // Path ke daftar, naik satu level
-                }
-                ?>
+                <?php if (isset($_SESSION['id_user'])): ?>
+                    <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-primary">Login</a>
+                    <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
+                <?php endif; ?>
             </div>
         </nav>
     </header>
@@ -309,16 +319,27 @@ if (!$result) {
                 <?php if (mysqli_num_rows($result) > 0): ?>
                     <?php while ($chat = mysqli_fetch_assoc($result)): ?>
                         <?php
-                        // Tentukan ID lawan bicara (penjual) untuk link ke chat.php
                         $chat_partner_id_for_link = ($chat['user1_id'] == $current_user_id) ? $chat['user2_id'] : $chat['user1_id'];
                         $sapi_display = ($chat['sapi_jenis_sapi'] ?? 'Sapi') . ' - ' . ($chat['sapi_jenis_kelamin'] ?? 'Jenis');
+
+                        $link_href = '';
+                        $chat_title = '';
+
+                        // Periksa apakah lawan bicara adalah Admin berdasarkan id_role atau chat_type
+                        if ($chat['chat_partner_role_id'] == $admin_role_id || $chat['chat_type'] == 'admin_chat') {
+                            $link_href = "chat_with_admin.php?chatroom_id=" . htmlspecialchars($chat['id_chatRooms']) . "&recipient_id=" . htmlspecialchars($chat_partner_id_for_link);
+                            $chat_title = htmlspecialchars($chat['chat_partner_username']) . ' <small class="text-muted">(Chat Admin)</small>';
+                        } else { // Jika lawan bicara adalah Penjual (chat sapi)
+                            $link_href = "chat.php?sapi_id=" . htmlspecialchars($chat['id_sapi']) . "&recipient_id=" . htmlspecialchars($chat_partner_id_for_link);
+                            $chat_title = htmlspecialchars($chat['chat_partner_username']) . ' <small class="text-muted">(Sapi: ' . htmlspecialchars($sapi_display) . ')</small>';
+                        }
                         ?>
-                        <a href="chat.php?sapi_id=<?= htmlspecialchars($chat['id_sapi']) ?>&recipient_id=<?= htmlspecialchars($chat_partner_id_for_link) ?>" class="chat-list-item">
+                        <a href="<?= $link_href ?>" class="chat-list-item">
                             <div class="chat-avatar">
                                 <?= strtoupper(substr($chat['chat_partner_username'], 0, 1)) ?>
                             </div>
                             <div class="chat-details">
-                                <h5><?= htmlspecialchars($chat['chat_partner_username']) ?> <small class="text-muted">(Sapi: <?= htmlspecialchars($sapi_display) ?>)</small></h5>
+                                <h5><?= $chat_title ?></h5>
                                 <p><?= htmlspecialchars($chat['last_message'] ?? 'Belum ada pesan.') ?></p>
                             </div>
                             <div class="chat-time">

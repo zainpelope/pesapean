@@ -1,60 +1,66 @@
 <?php
+// fetch_messages.php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 include '../koneksi.php';
 
-header('Content-Type: text/html'); // Pastikan ini adalah HTML, bukan JSON
-
 if (!isset($_SESSION['id_user'])) {
-    echo "Unauthorized";
-    exit();
+    exit(); // Atau redirect ke login jika Anda ingin memaksakan login
 }
 
 $chatroom_id = isset($_GET['chatroom_id']) ? (int)$_GET['chatroom_id'] : 0;
-$current_user_id = $_SESSION['id_user'];
-$recipient_id = isset($_GET['recipient_id']) ? (int)$_GET['recipient_id'] : 0; // ID penjual dari URL
+$current_user_id = isset($_GET['current_user_id']) ? (int)$_GET['current_user_id'] : 0; // Dapatkan dari JS
 
-if ($chatroom_id <= 0 || $recipient_id <= 0) {
-    echo "Invalid chatroom ID or recipient ID.";
+if ($chatroom_id <= 0 || $current_user_id <= 0) {
+    echo "Pilih chatroom untuk melihat pesan.";
     exit();
 }
 
-// Validasi akses: Pastikan user yang sedang login adalah salah satu dari user1_id atau user2_id di chatroom ini
-$stmt_check_access = mysqli_prepare($koneksi, "SELECT user1_id, user2_id FROM chatRooms WHERE id_chatRooms = ?");
-mysqli_stmt_bind_param($stmt_check_access, "i", $chatroom_id);
-mysqli_stmt_execute($stmt_check_access);
-$result_access = mysqli_stmt_get_result($stmt_check_access);
-$chatroom_users = mysqli_fetch_assoc($result_access);
-mysqli_stmt_close($stmt_check_access);
-
-if (!$chatroom_users || ($current_user_id != $chatroom_users['user1_id'] && $current_user_id != $chatroom_users['user2_id'])) {
-    echo "Access Denied. You are not a participant in this chat.";
+// Pastikan user yang login adalah salah satu peserta chatroom
+$stmt_validate_chatroom_user = mysqli_prepare($koneksi, "SELECT id_chatRooms FROM chatRooms WHERE id_chatRooms = ? AND (user1_id = ? OR user2_id = ?)");
+if ($stmt_validate_chatroom_user) {
+    mysqli_stmt_bind_param($stmt_validate_chatroom_user, "iii", $chatroom_id, $current_user_id, $current_user_id);
+    mysqli_stmt_execute($stmt_validate_chatroom_user);
+    $result_validate = mysqli_stmt_get_result($stmt_validate_chatroom_user);
+    if (mysqli_num_rows($result_validate) == 0) {
+        echo "Anda tidak memiliki akses ke chatroom ini.";
+        exit();
+    }
+    mysqli_stmt_close($stmt_validate_chatroom_user);
+} else {
+    echo "Error validasi chatroom: " . mysqli_error($koneksi);
     exit();
 }
 
-// Ambil pesan
-$query = "SELECT cm.pesan, cm.waktu_kirim, cm.sender_id, u.username
-          FROM chatMessage cm
-          LEFT JOIN users u ON cm.sender_id = u.id_user
+
+$query = "SELECT cm.pesan, cm.waktu_kirim, cm.sender_id, u.username AS sender_username
+          FROM chatmessage cm
+          JOIN users u ON cm.sender_id = u.id_user
           WHERE cm.id_chatRooms = ?
           ORDER BY cm.waktu_kirim ASC";
 
 $stmt = mysqli_prepare($koneksi, $query);
+if (!$stmt) {
+    echo "Error prepared statement: " . mysqli_error($koneksi);
+    exit();
+}
 mysqli_stmt_bind_param($stmt, "i", $chatroom_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
 if (mysqli_num_rows($result) > 0) {
-    while ($row = mysqli_fetch_assoc($result)) {
-        $message_class = ($row['sender_id'] == $current_user_id) ? 'sent' : 'received';
-        $sender_name = ($row['sender_id'] == $current_user_id) ? 'Anda' : htmlspecialchars($row['username'] ?? 'Pengguna');
-        $time_formatted = date('H:i', strtotime($row['waktu_kirim']));
-        echo "<div class='message-bubble {$message_class}'>";
-        echo "<strong>" . $sender_name . ":</strong> " . htmlspecialchars($row['pesan']);
-        echo "<small>" . $time_formatted . "</small>";
-        echo "</div>";
+    while ($message = mysqli_fetch_assoc($result)) {
+        $is_sent = ($message['sender_id'] == $current_user_id) ? 'sent' : 'received';
+        $time = date('H:i', strtotime($message['waktu_kirim']));
+        echo '<div class="message-bubble ' . $is_sent . '">';
+        echo htmlspecialchars($message['pesan']);
+        echo '<small>' . htmlspecialchars($time) . '</small>';
+        echo '</div>';
     }
 } else {
-    echo "<p class='text-center text-muted'>Mulai percakapan Anda di sini.</p>";
+    echo '<div class="text-center text-muted">Belum ada pesan dalam chat ini.</div>';
 }
 
 mysqli_stmt_close($stmt);

@@ -75,7 +75,9 @@ if (!$result) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* CSS dari admin/beranda.php atau style.css untuk konsistensi */
+        /* style.css */
+
+        /* --- Variabel CSS Global --- */
         :root {
             --primary-color: rgb(240, 161, 44);
             --secondary-color: rgb(48, 52, 56);
@@ -97,10 +99,16 @@ if (!$result) {
             flex-direction: column;
             min-height: 100vh;
             background-color: var(--light-bg);
+            font-family: 'Open Sans', sans-serif;
+            /* Pastikan font ini ada atau ganti dengan font yang Anda punya */
+            color: var(--dark-text);
+            line-height: 1.6;
         }
 
+        /* --- Header & Navbar --- */
         .main-header {
-            background-color: var(--white-bg);
+            background-color: black;
+            /* Latar belakang navbar menjadi hitam */
             border-bottom: 1px solid var(--border-color);
             padding: 1rem 0;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
@@ -120,6 +128,7 @@ if (!$result) {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--primary-color);
+            /* Warna logo tetap oranye */
             text-decoration: none;
             transition: color 0.3s ease;
         }
@@ -134,7 +143,8 @@ if (!$result) {
 
         .nav-links li a {
             text-decoration: none;
-            color: var(--dark-color);
+            color: white;
+            /* Warna teks link navigasi menjadi putih */
             font-weight: 600;
             padding: 0.5rem 0;
             transition: color 0.3s ease, border-bottom 0.3s ease;
@@ -143,6 +153,7 @@ if (!$result) {
         .nav-links li a:hover,
         .nav-links li a.active {
             color: var(--primary-color);
+            /* Warna hover tetap oranye */
             border-bottom: 2px solid var(--primary-color);
         }
 
@@ -172,6 +183,7 @@ if (!$result) {
             border: 1px solid var(--primary-color);
         }
 
+        /* --- Main Content --- */
         .main-content {
             flex: 1;
             padding: 30px 0;
@@ -246,13 +258,73 @@ if (!$result) {
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 90%;
-            /* Sesuaikan agar tidak terlalu lebar */
         }
 
         .chat-time {
             font-size: 0.8em;
             color: var(--tertiary-color);
             white-space: nowrap;
+        }
+
+        /* --- Footer (tambahan, jika belum ada di style.css) --- */
+        .footer {
+            background-color: var(--secondary-color);
+            /* Warna latar belakang footer */
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: auto;
+            /* Memastikan footer selalu di bagian bawah */
+        }
+
+        .footer .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .footer-links li a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links li a:hover {
+            color: var(--primary-color);
+        }
+
+        /* --- Responsif (Contoh sederhana) --- */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: center;
+            }
+
+            .auth-links {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -262,21 +334,22 @@ if (!$result) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="beranda.php">Pesapean</a>
+                <a href="../admin/admin.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="beranda.php">Beranda Admin</a></li>
-                <li><a href="pesan.php" class="active">Pesan</a></li>
+                <li><a href="../admin/admin.php">Beranda</a></li>
+                <li><a href="../admin/data_sapi.php?jenis=sonok">Data Sapi</a></li>
+                <li><a href="../admin/lelang.php">Lelang</a></li>
+                <li><a href="../admin/data_user.php">Data User</a></li>
+                <li><a href="../admin/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
-                <?php
-                if (isset($_SESSION['id_user'])) {
-                    echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
-                } else {
-                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
-                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>';
-                }
-                ?>
+                <?php if (isset($_SESSION['id_user'])): ?>
+                    <a href="../auth/profile.php" class="btn btn-primary">Profile</a>
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-primary">Login</a>
+                    <a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>
+                <?php endif; ?>
             </div>
         </nav>
     </header>
