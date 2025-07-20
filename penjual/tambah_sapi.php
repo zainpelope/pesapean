@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Query to save data to the `data_sapi` table
         // **Add the `id_user_penjual` column to the list of columns and bound values**
         $query = "INSERT INTO data_sapi (id_macamSapi, foto_sapi, harga_sapi, nama_pemilik, alamat_pemilik, nomor_pemilik, email_pemilik, createdAt, updatedAt, latitude, longitude, jenis_kelamin, id_user_penjual)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // Add ? for id_user_penjual
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // Add ? for id_user_penjual
         $stmt = mysqli_prepare($koneksi, $query);
 
         // Bind parameters to the statement
@@ -159,6 +159,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     break;
 
                 case 'Sapi Tangghek':
+                    // --- START OF CHANGES FOR SAPI TANGGHEK ---
+                    $nama_sapi = $_POST['tangghek_nama_sapi']; // Ambil nilai nama_sapi dari form input
                     $tinggi = $_POST['tangeh_tinggi'];
                     $panjang = $_POST['tangeh_panjang'];
                     $dada = $_POST['tangeh_dada'];
@@ -167,11 +169,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $jarak = $_POST['tangeh_jarak'];
                     $prestasi = $_POST['tangeh_prestasi'];
                     $kesehatan = $_POST['tangeh_kesehatan'];
-                    $queryTangghek = "INSERT INTO sapiTangghek (id_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                    // Perbarui query INSERT untuk menyertakan kolom nama_sapi
+                    $queryTangghek = "INSERT INTO sapiTangghek (id_sapi, nama_sapi, tinggi_badan, panjang_badan, lingkar_dada, bobot_badan, intensitas_latihan, jarak_latihan, prestasi, kesehatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     $stmtTangghek = mysqli_prepare($koneksi, $queryTangghek);
-                    mysqli_stmt_bind_param($stmtTangghek, "issssssss", $id_sapi, $tinggi, $panjang, $dada, $bobot, $latihan, $jarak, $prestasi, $kesehatan);
+                    // Perbarui binding parameter: tambahkan 's' untuk nama_sapi
+                    mysqli_stmt_bind_param($stmtTangghek, "isssssssss", $id_sapi, $nama_sapi, $tinggi, $panjang, $dada, $bobot, $latihan, $jarak, $prestasi, $kesehatan);
                     mysqli_stmt_execute($stmtTangghek);
                     mysqli_stmt_close($stmtTangghek);
+                    // --- END OF CHANGES FOR SAPI TANGGHEK ---
                     break;
 
                 case 'Sapi Potong':
@@ -429,6 +435,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             `,
             "Sapi Tangghek": `
                 <h4>Form Sapi Tangghek</h4>
+                <div class="form-group">
+                    <input type="text" name="tangghek_nama_sapi" class="form-control" placeholder="Nama Sapi" required>
+                </div>
                 <div class="form-group">
                     <input type="text" name="tangeh_tinggi" class="form-control" placeholder="Tinggi Badan" required>
                 </div>
