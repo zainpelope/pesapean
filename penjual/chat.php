@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1); // Enable error display for debugging
+ini_set('display_startup_errors', 1); // Enable startup error display
+error_reporting(E_ALL); // Report all errors
+
 session_start();
 include '../koneksi.php'; // Pastikan path ini benar (naik satu level ke folder utama)
 
@@ -15,7 +19,8 @@ $recipient_id = isset($_GET['recipient_id']) ? (int)$_GET['recipient_id'] : 0; /
 
 // Validasi input
 if ($sapi_id <= 0 || $recipient_id <= 0) {
-    echo "<script>alert('ID Sapi atau ID Penerima tidak valid.'); window.location.href='pesan.php';</script>"; // Kembali ke pesan.php
+    // Removed alert, redirecting directly
+    header('Location: pesan.php');
     exit();
 }
 
@@ -34,9 +39,9 @@ mysqli_stmt_close($stmt_partner);
 // Ambil info sapi
 $sapi_nama_display = 'Tidak Tersedia';
 $stmt_sapi = mysqli_prepare($koneksi, "SELECT ds.jenis_kelamin, ms.name AS jenis_sapi
-                                       FROM data_sapi ds
-                                       LEFT JOIN macamsapi ms ON ds.id_macamSapi = ms.id_macamSapi
-                                       WHERE ds.id_sapi = ?");
+                                         FROM data_sapi ds
+                                         LEFT JOIN macamsapi ms ON ds.id_macamSapi = ms.id_macamSapi
+                                         WHERE ds.id_sapi = ?");
 mysqli_stmt_bind_param($stmt_sapi, "i", $sapi_id);
 mysqli_stmt_execute($stmt_sapi);
 $result_sapi = mysqli_stmt_get_result($stmt_sapi);
@@ -55,7 +60,7 @@ $user_id_b = max($current_user_id, $recipient_id);
 $chat_type = 'sapi_chat'; // Karena ini chat sapi
 
 $stmt_chatroom = mysqli_prepare($koneksi, "SELECT id_chatRooms FROM chatRooms
-                                          WHERE user1_id = ? AND user2_id = ? AND id_sapi = ? AND chat_type = ?");
+                                           WHERE user1_id = ? AND user2_id = ? AND id_sapi = ? AND chat_type = ?");
 
 mysqli_stmt_bind_param($stmt_chatroom, "iiis", $user_id_a, $user_id_b, $sapi_id, $chat_type);
 mysqli_stmt_execute($stmt_chatroom);
@@ -73,7 +78,8 @@ if ($chatroom) {
     if (mysqli_stmt_execute($stmt_insert_chatroom)) {
         $chatroom_id = mysqli_insert_id($koneksi);
     } else {
-        echo "<script>alert('Gagal membuat chatroom. Silakan coba lagi. Error: " . mysqli_error($koneksi) . "'); window.location.href='pesan.php';</script>";
+        // Removed alert, redirecting directly
+        header('Location: pesan.php');
         exit();
     }
 }
@@ -294,6 +300,7 @@ if ($chatroom) {
 
                         chatMessages.html(response);
 
+                        // Scroll to bottom if user is near the bottom or at the very top (first load)
                         if (currentScrollPos >= maxScrollPos - 20 || maxScrollPos === 0) {
                             chatMessages.scrollTop(chatMessages[0].scrollHeight);
                         }
@@ -305,12 +312,15 @@ if ($chatroom) {
             }
 
             chatForm.on('submit', function(e) {
-                e.preventDefault();
+                e.preventDefault(); // Mencegah submit form standar yang akan merefresh halaman
 
                 const messageText = messageInput.val().trim();
                 if (messageText === '') {
-                    return;
+                    return; // Jangan kirim pesan kosong
                 }
+
+                // --- KOSONGKAN INPUT FIELD SEGERA SETELAH TOMBOL KIRIM DITEKAN ---
+                messageInput.val('');
 
                 $.ajax({
                     url: 'send_message.php', // Path relatif di folder penjual
@@ -319,26 +329,34 @@ if ($chatroom) {
                         chatroom_id: chatroomId,
                         sender_id: senderId,
                         message: messageText,
-                        recipient_id: <?= json_encode($recipient_id) ?>
+                        recipient_id: <?= json_encode($recipient_id) ?> // Pastikan recipient_id juga dikirim
                     },
                     success: function(response) {
-                        const res = JSON.parse(response);
-                        if (res.status === 'success') {
-                            messageInput.val('');
-                            loadMessages();
-                        } else {
-                            alert('Gagal mengirim pesan: ' + res.message);
+                        try {
+                            const res = JSON.parse(response);
+                            if (res.status === 'success') {
+                                loadMessages(); // Refresh messages to show the new one
+                            } else {
+                                console.error('Gagal mengirim pesan: ' + res.message); // Log error to console
+                                // Optional: You could display a non-intrusive message here if needed
+                            }
+                        } catch (e) {
+                            console.error("Error parsing JSON response: ", e);
+                            console.error("Response was: ", response);
+                            // Optional: You could display a non-intrusive message here if needed
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error sending message: ", status, error);
-                        alert('Terjadi kesalahan saat mengirim pesan.');
+                        console.error("Error sending message: ", status, error); // Log error to console
+                        // Optional: You could display a non-intrusive message here if needed
                     }
                 });
             });
 
+            // Muat pesan saat halaman pertama kali dibuka
             loadMessages();
-            setInterval(loadMessages, 3000);
+            // Atur interval untuk memuat pesan secara berkala
+            setInterval(loadMessages, 3000); // Perbarui pesan setiap 3 detik
         });
     </script>
     <?php include '../footer.php'; ?>

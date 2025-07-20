@@ -275,6 +275,7 @@ if ($chatroom) {
             const messageInput = $('#message-input');
             const chatroomId = $('input[name="chatroom_id"]').val();
             const senderId = $('input[name="sender_id"]').val();
+            const recipientId = <?= json_encode($recipient_id); ?>; // Ambil ID penerima (admin) dari PHP
 
             function loadMessages() {
                 $.ajax({
@@ -282,8 +283,7 @@ if ($chatroom) {
                     method: 'GET',
                     data: {
                         chatroom_id: chatroomId,
-                        current_user_id: senderId, // Kirim ID pengguna saat ini
-                        recipient_id: <?= json_encode($recipient_id) ?> // Kirim ID penerima (penjual)
+                        current_user_id: senderId
                     },
                     success: function(response) {
                         const currentScrollPos = chatMessages[0].scrollTop;
@@ -291,7 +291,6 @@ if ($chatroom) {
 
                         chatMessages.html(response);
 
-                        // Hanya gulir ke bawah jika sudah di paling bawah atau jika baru dimuat
                         if (currentScrollPos >= maxScrollPos - 20 || maxScrollPos === 0) {
                             chatMessages.scrollTop(chatMessages[0].scrollHeight);
                         }
@@ -310,6 +309,12 @@ if ($chatroom) {
                     return;
                 }
 
+                // --- PERUBAHAN DI SINI ---
+                // Kosongkan input field SEBELUM mengirim pesan via AJAX
+                // Ini akan membuat input kosong segera setelah tombol KIRIM ditekan.
+                messageInput.val('');
+                // --- AKHIR PERUBAHAN ---
+
                 $.ajax({
                     url: 'send_message.php',
                     method: 'POST',
@@ -317,20 +322,25 @@ if ($chatroom) {
                         chatroom_id: chatroomId,
                         sender_id: senderId,
                         message: messageText,
-                        recipient_id: <?= json_encode($recipient_id) ?> // Kirim juga recipient_id untuk validasi di backend
+                        recipient_id: recipientId
                     },
                     success: function(response) {
                         const res = JSON.parse(response);
                         if (res.status === 'success') {
-                            messageInput.val('');
+                            // Jika ingin hanya mengosongkan setelah sukses, pindahkan messageInput.val(''); ke sini lagi
+                            // Tapi untuk debugging, lebih baik kosongkan di awal.
                             loadMessages();
                         } else {
                             alert('Gagal mengirim pesan: ' + res.message);
+                            // Jika pesan gagal dikirim, Anda mungkin ingin mengembalikan teks ke input
+                            // messageInput.val(messageText); // Tambahkan ini jika ingin mengembalikan teks saat gagal
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error("Error sending message: ", status, error);
                         alert('Terjadi kesalahan saat mengirim pesan.');
+                        // Jika terjadi error, Anda mungkin ingin mengembalikan teks ke input
+                        // messageInput.val(messageText); // Tambahkan ini jika ingin mengembalikan teks saat error
                     }
                 });
             });

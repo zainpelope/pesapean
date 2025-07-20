@@ -75,9 +75,9 @@ mysqli_stmt_close($stmt_validate_chatroom);
 // Logika ini biasanya tidak perlu di sini jika alur dimulai dari 'pesan.php' atau 'data_sapi.php'
 // Namun, jika ada kasus langsung akses chat_with_admin.php, maka ini penting.
 $stmt_check_chatroom_exists = mysqli_prepare($koneksi, "SELECT id_chatRooms FROM chatRooms
-                                                        WHERE ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
-                                                        AND chat_type = 'admin_chat'
-                                                        LIMIT 1");
+                                                          WHERE ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
+                                                          AND chat_type = 'admin_chat'
+                                                          LIMIT 1");
 mysqli_stmt_bind_param($stmt_check_chatroom_exists, "iiii", $user_id_a, $user_id_b, $user_id_b, $user_id_a);
 mysqli_stmt_execute($stmt_check_chatroom_exists);
 $result_check_chatroom_exists = mysqli_stmt_get_result($stmt_check_chatroom_exists);
@@ -294,7 +294,7 @@ mysqli_stmt_close($stmt_check_chatroom_exists);
 
             function loadMessages() {
                 $.ajax({
-                    url: 'fetch_messages.php', // Tetap gunakan fetch_messages.php
+                    url: 'fetch_messages.php',
                     method: 'GET',
                     data: {
                         chatroom_id: chatroomId,
@@ -324,27 +324,38 @@ mysqli_stmt_close($stmt_check_chatroom_exists);
                     return;
                 }
 
+                // --- PERUBAHAN DI SINI ---
+                // Kosongkan input field SEBELUM mengirim pesan via AJAX
+                // Ini akan membuat input kosong segera setelah tombol KIRIM ditekan.
+                messageInput.val('');
+                // --- AKHIR PERUBAHAN ---
+
                 $.ajax({
-                    url: 'send_message.php', // Tetap gunakan send_message.php
+                    url: 'send_message.php',
                     method: 'POST',
                     data: {
                         chatroom_id: chatroomId,
                         sender_id: senderId,
                         message: messageText,
-                        recipient_id: recipientId // <-- PENTING: Tambahkan ini
+                        recipient_id: recipientId
                     },
                     success: function(response) {
                         const res = JSON.parse(response);
                         if (res.status === 'success') {
-                            messageInput.val('');
+                            // Jika ingin hanya mengosongkan setelah sukses, pindahkan messageInput.val(''); ke sini lagi
+                            // Tapi untuk debugging, lebih baik kosongkan di awal.
                             loadMessages();
                         } else {
                             alert('Gagal mengirim pesan: ' + res.message);
+                            // Jika pesan gagal dikirim, Anda mungkin ingin mengembalikan teks ke input
+                            // messageInput.val(messageText); // Tambahkan ini jika ingin mengembalikan teks saat gagal
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error("Error sending message: ", status, error);
                         alert('Terjadi kesalahan saat mengirim pesan.');
+                        // Jika terjadi error, Anda mungkin ingin mengembalikan teks ke input
+                        // messageInput.val(messageText); // Tambahkan ini jika ingin mengembalikan teks saat error
                     }
                 });
             });
