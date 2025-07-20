@@ -206,6 +206,7 @@ $queryLelangDiikuti = mysqli_query($koneksi, "
                 <li><a href="../pembeli/data_sapi.php?jenis=sonok">Data Sapi</a></li>
                 <li><a href="../pembeli/lelang.php">Lelang</a></li>
                 <li><a href="../pembeli/lelang_diikuti.php">Lelang Saya</a></li>
+                <li><a href="../pembeli/pesan.php">Pesan</a></li>
             </ul>
             <div class="auth-links">
                 <?php

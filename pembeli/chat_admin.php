@@ -24,10 +24,10 @@ if ($result_admin_id && mysqli_num_rows($result_admin_id) > 0) {
 
 // Check for an existing chat room between the current user and the admin
 $id_chat_room = null;
-$query_chatroom = "SELECT id_chatRooms FROM chatrooms 
-                   WHERE (user1_id = $current_user_id AND user2_id = $admin_id) 
-                   OR (user1_id = $admin_id AND user2_id = $current_user_id)
-                   LIMIT 1";
+$query_chatroom = "SELECT id_chatRooms FROM chatrooms
+                    WHERE (user1_id = $current_user_id AND user2_id = $admin_id)
+                    OR (user1_id = $admin_id AND user2_id = $current_user_id)
+                    LIMIT 1";
 $result_chatroom = mysqli_query($koneksi, $query_chatroom);
 
 if ($result_chatroom && mysqli_num_rows($result_chatroom) > 0) {
@@ -35,7 +35,7 @@ if ($result_chatroom && mysqli_num_rows($result_chatroom) > 0) {
     $id_chat_room = $chatroom_row['id_chatRooms'];
 } else {
     // If no chat room exists, create a new one
-    $insert_chatroom_query = "INSERT INTO chatrooms (user1_id, user2_id, chat_type, createdAt, updatedAt) 
+    $insert_chatroom_query = "INSERT INTO chatrooms (user1_id, user2_id, chat_type, createdAt, updatedAt)
                               VALUES ($current_user_id, $admin_id, 'admin_chat', NOW(), NOW())";
     if (mysqli_query($koneksi, $insert_chatroom_query)) {
         $id_chat_room = mysqli_insert_id($koneksi); // Get the ID of the newly created chat room
@@ -48,7 +48,7 @@ if ($result_chatroom && mysqli_num_rows($result_chatroom) > 0) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['message_content'])) {
     $message_content = mysqli_real_escape_string($koneksi, $_POST['message_content']);
     if (!empty($message_content) && $id_chat_room) {
-        $insert_message_query = "INSERT INTO chatmessage (id_chatRooms, sender_id, pesan, waktu_kirim) 
+        $insert_message_query = "INSERT INTO chatmessage (id_chatRooms, sender_id, pesan, waktu_kirim)
                                  VALUES ($id_chat_room, $current_user_id, '$message_content', NOW())";
         if (!mysqli_query($koneksi, $insert_message_query)) {
             echo "Error sending message: " . mysqli_error($koneksi);
@@ -63,10 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['message_content'])) {
 $messages = [];
 if ($id_chat_room) {
     $query_messages = "SELECT cm.pesan, cm.waktu_kirim, u.username AS sender_username, u.id_user AS sender_id
-                       FROM chatmessage cm
-                       JOIN users u ON cm.sender_id = u.id_user
-                       WHERE cm.id_chatRooms = $id_chat_room
-                       ORDER BY cm.waktu_kirim ASC";
+                        FROM chatmessage cm
+                        JOIN users u ON cm.sender_id = u.id_user
+                        WHERE cm.id_chatRooms = $id_chat_room
+                        ORDER BY cm.waktu_kirim ASC";
     $result_messages = mysqli_query($koneksi, $query_messages);
     if ($result_messages) {
         while ($row = mysqli_fetch_assoc($result_messages)) {
@@ -113,6 +113,24 @@ if ($id_chat_room) {
             font-size: 1.2rem;
             font-weight: 600;
             border-bottom: 1px solid #dee2e6;
+            display: flex;
+            /* Added for alignment */
+            justify-content: space-between;
+            /* Added for alignment */
+            align-items: center;
+            /* Added for alignment */
+        }
+
+        .close-button {
+            color: white;
+            font-size: 1.5rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            color: #f8d7da;
+            /* Lighter color on hover */
         }
 
         .chat-messages {
@@ -203,6 +221,9 @@ if ($id_chat_room) {
     <div class="chat-container">
         <div class="chat-header">
             Chat with Admin
+            <a href="../pembeli/beranda.php" class="close-button" aria-label="Close chat">
+                <i class="fas fa-times"></i>
+            </a>
         </div>
         <div class="chat-messages" id="chatMessages">
             <?php if (empty($messages)): ?>
