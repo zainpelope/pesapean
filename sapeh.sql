@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jul 20, 2025 at 06:58 AM
+-- Generation Time: Jul 21, 2025 at 09:51 AM
 -- Server version: 5.7.24
 -- PHP Version: 8.3.1
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `a`
+-- Database: `sapeh`
 --
 
 -- --------------------------------------------------------
@@ -34,16 +34,6 @@ CREATE TABLE `chatmessage` (
   `pesan` text,
   `waktu_kirim` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `chatmessage`
---
-
-INSERT INTO `chatmessage` (`id_message`, `id_chatRooms`, `sender_id`, `pesan`, `waktu_kirim`) VALUES
-(1, 1, 14, 'as', '2025-07-19 16:12:51'),
-(2, 1, 15, 'apa loh', '2025-07-19 16:13:17'),
-(3, 2, 14, 'akun brooo', '2025-07-19 23:57:51'),
-(4, 2, 7, 'ok msayank', '2025-07-19 23:58:23');
 
 -- --------------------------------------------------------
 
@@ -61,14 +51,6 @@ CREATE TABLE `chatrooms` (
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `chatrooms`
---
-
-INSERT INTO `chatrooms` (`id_chatRooms`, `id_sapi`, `user1_id`, `user2_id`, `chat_type`, `nama_pengirim`, `createdAt`, `updatedAt`) VALUES
-(1, 35, 14, 15, 'sapi_chat', NULL, '2025-07-19 16:01:51', '2025-07-19 16:01:51'),
-(2, NULL, 14, 7, 'admin_chat', NULL, '2025-07-19 23:57:44', '2025-07-19 23:57:44');
 
 -- --------------------------------------------------------
 
@@ -92,19 +74,6 @@ CREATE TABLE `data_sapi` (
   `jenis_kelamin` enum('jantan','betina') DEFAULT NULL,
   `id_user_penjual` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `data_sapi`
---
-
-INSERT INTO `data_sapi` (`id_sapi`, `id_macamSapi`, `foto_sapi`, `harga_sapi`, `nama_pemilik`, `alamat_pemilik`, `nomor_pemilik`, `email_pemilik`, `createdAt`, `updatedAt`, `latitude`, `longitude`, `jenis_kelamin`, `id_user_penjual`) VALUES
-(35, 2, 'pi.jpeg', 345345, 'sd', 'sad', '3424', 'a@gmail.com', '2025-07-18 19:29:48', '2025-07-18 19:29:48', '-7.1622537', '113.4830011', 'betina', 15),
-(36, 3, 'pi.jpeg', 546, 'Zainullah', 'sd', 'sad', 's@gmail.com', '2025-07-18 19:30:22', '2025-07-18 19:30:22', '-7.1622537', '113.4830011', 'jantan', 15),
-(37, 4, 'pi.jpeg', 345432, 'gggfhgf', 'wqe', '5464646546456456', 'dia@gmail.com', '2025-07-18 19:31:10', '2025-07-18 19:31:10', '-7.1622537', '113.4830011', 'betina', 15),
-(38, 5, 'sa.jpeg', 345, 'dsf', 'df', 'sdf', 's@gmail.com', '2025-07-18 19:31:32', '2025-07-18 19:31:32', '-7.1622537', '113.4830011', 'jantan', 15),
-(39, 5, 'sa.jpeg', 21321, 'sad', 'sad', 'sad', 's@gmail.com', '2025-07-19 22:55:55', '2025-07-19 22:55:55', '-7.1622537', '113.4830011', 'jantan', 15),
-(40, 5, 'pi.jpeg', 234324, 'dsf', 'df', 'sdf', 'q@gmail.com', '2025-07-19 23:02:57', '2025-07-19 23:02:57', '-7.1622537', '113.4830011', 'betina', 15),
-(41, 4, 'pisa.jpg', 3434, 'sd', 'sd', 's', 'fauzan@gmail.com', '2025-07-19 23:13:49', '2025-07-19 23:13:49', '-7.1622537', '113.4830011', 'jantan', 15);
 
 -- --------------------------------------------------------
 
@@ -184,16 +153,6 @@ CREATE TABLE `lelang` (
   `id_user` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
---
--- Dumping data for table `lelang`
---
-
-INSERT INTO `lelang` (`id_lelang`, `id_sapi`, `harga_awal`, `harga_tertinggi`, `id_penawaranTertinggi`, `batas_waktu`, `status`, `approved_by_admin`, `approved_at`, `id_admin_approver`, `createdAt`, `updatedAt`, `id_user`) VALUES
-(22, 35, 5000, 4002, 22, '2025-07-16 12:32:00', 'Selesai', 1, '2025-07-18 19:33:43', 7, '2025-07-18 19:33:11', '2025-07-19 23:56:53', 15),
-(23, 37, 343, 324, 23, '2025-07-31 15:56:00', 'Aktif', 1, '2025-07-19 22:56:34', 7, '2025-07-19 22:56:19', '2025-07-19 23:55:52', 15),
-(24, 36, 345, 45, NULL, '2025-07-30 16:14:00', 'Aktif', 1, '2025-07-20 06:55:23', 7, '2025-07-19 23:14:05', '2025-07-19 23:55:23', 15),
-(25, 41, 4534, 43534, NULL, '2025-07-22 23:54:00', 'Aktif', 1, '2025-07-20 06:55:19', 7, '2025-07-20 06:54:51', '2025-07-19 23:55:19', 15);
-
 -- --------------------------------------------------------
 
 --
@@ -235,13 +194,6 @@ CREATE TABLE `pembayaran` (
   `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
---
--- Dumping data for table `pembayaran`
---
-
-INSERT INTO `pembayaran` (`id_pembayaran`, `id_lelang`, `id_user`, `jumlah_bayar`, `metode_pembayaran`, `tanggal_pembayaran`, `status_pembayaran`, `bukti_transfer`, `createdAt`, `updatedAt`) VALUES
-(1, 22, 14, '4002.00', 'Bank Transfer', '2025-07-19 23:56:09', 'Menunggu Konfirmasi', '687c93098135a_pisa.jpg', '2025-07-19 23:56:09', '2025-07-19 23:56:09');
-
 -- --------------------------------------------------------
 
 --
@@ -255,14 +207,6 @@ CREATE TABLE `penawaran` (
   `waktu_tawaran` datetime DEFAULT NULL,
   `id_user` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `penawaran`
---
-
-INSERT INTO `penawaran` (`id_penawaran`, `id_lelang`, `harga_tawaran`, `waktu_tawaran`, `id_user`) VALUES
-(22, 22, 4002, '2025-07-18 12:36:11', 14),
-(23, 23, 324, '2025-07-19 23:55:52', 14);
 
 -- --------------------------------------------------------
 
@@ -298,13 +242,6 @@ CREATE TABLE `sapikerap` (
   `penghargaan` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
---
--- Dumping data for table `sapikerap`
---
-
-INSERT INTO `sapikerap` (`id_sapi`, `nama_sapi`, `ketahanan_fisik`, `kecepatan_lari`, `penghargaan`) VALUES
-(35, 'sapi kerap', 'sapi kerap', 'sapi kerap', 'sapi kerap');
-
 -- --------------------------------------------------------
 
 --
@@ -318,15 +255,6 @@ CREATE TABLE `sapipotong` (
   `berat_badan` varchar(50) DEFAULT NULL,
   `persentase_daging` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `sapipotong`
---
-
-INSERT INTO `sapipotong` (`id`, `id_sapi`, `nama_sapi`, `berat_badan`, `persentase_daging`) VALUES
-(1, 38, 'Hayabusa', '34', '70 %'),
-(2, 39, 'sad', 'sad', 'sad'),
-(3, 40, 'erf', 'dsf', 'sdf');
 
 -- --------------------------------------------------------
 
@@ -347,9 +275,7 @@ CREATE TABLE `sapisonok` (
   `lebar_punggul` varchar(50) DEFAULT NULL,
   `lebar_dada` varchar(50) DEFAULT NULL,
   `tinggi_kaki` varchar(50) DEFAULT NULL,
-  `kesehatan` varchar(100) DEFAULT NULL,
-  `generasiSatu` int(11) DEFAULT NULL,
-  `generasiDua` int(11) DEFAULT NULL
+  `kesehatan` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -368,15 +294,9 @@ CREATE TABLE `sapitangghek` (
   `intensitas_latihan` varchar(100) DEFAULT NULL,
   `jarak_latihan` varchar(100) DEFAULT NULL,
   `prestasi` varchar(100) DEFAULT NULL,
-  `kesehatan` varchar(100) DEFAULT NULL
+  `kesehatan` varchar(100) DEFAULT NULL,
+  `nama_sapi` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `sapitangghek`
---
-
-INSERT INTO `sapitangghek` (`id`, `id_sapi`, `tinggi_badan`, `panjang_badan`, `lingkar_dada`, `bobot_badan`, `intensitas_latihan`, `jarak_latihan`, `prestasi`, `kesehatan`) VALUES
-(1, 36, 'Sapi Tangghek', 'Sapi Tangghek', 'Sapi Tangghek', 'Sapi Tangghek', 'Sapi Tangghek', 'Sapi Tangghek', 'Sapi Tangghek', 'Sapi Tangghek');
 
 -- --------------------------------------------------------
 
@@ -390,14 +310,6 @@ CREATE TABLE `sapiternak` (
   `kesuburan` varchar(100) DEFAULT NULL,
   `riwayat_kesehatan` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `sapiternak`
---
-
-INSERT INTO `sapiternak` (`id_sapi`, `nama_sapi`, `kesuburan`, `riwayat_kesehatan`) VALUES
-(37, 'Sapi Ternak', 'Sapi Ternak', 'Sapi Ternak'),
-(41, 'sdf', 'df', 'dsf');
 
 -- --------------------------------------------------------
 
@@ -420,9 +332,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_user`, `username`, `email`, `password`, `createdAt`, `updateAt`, `id_role`) VALUES
-(7, 'Zainullah', 'zain.alapolaa@gmail.com', 'zain', '2025-07-18 04:19:24', '2025-07-18 04:19:24', 1),
-(14, 'pembeli', 'pembeli@gmail.com', 'a', '2025-07-18 19:21:42', '2025-07-18 19:21:42', 3),
-(15, 'Penjual', 'penjual@gmail.com', 'a', '2025-07-18 19:25:19', NULL, 2);
+(1, 'admin', 'admin@gmail.com', 'admin', '2025-07-18 04:19:24', '2025-07-18 04:19:24', 1),
+(2, 'Penjual', 'penjual@gmail.com', 'a', '2025-07-18 19:25:19', NULL, 2),
+(3, 'pembeli', 'pembeli@gmail.com', 'a', '2025-07-18 19:21:42', '2025-07-18 19:21:42', 3);
 
 --
 -- Indexes for dumped tables
@@ -557,19 +469,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `chatmessage`
 --
 ALTER TABLE `chatmessage`
-  MODIFY `id_message` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_message` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `chatrooms`
 --
 ALTER TABLE `chatrooms`
-  MODIFY `id_chatRooms` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_chatRooms` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `data_sapi`
 --
 ALTER TABLE `data_sapi`
-  MODIFY `id_sapi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id_sapi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `generasidua`
@@ -593,7 +505,7 @@ ALTER TABLE `home`
 -- AUTO_INCREMENT for table `lelang`
 --
 ALTER TABLE `lelang`
-  MODIFY `id_lelang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id_lelang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `macamsapi`
@@ -605,13 +517,13 @@ ALTER TABLE `macamsapi`
 -- AUTO_INCREMENT for table `pembayaran`
 --
 ALTER TABLE `pembayaran`
-  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `penawaran`
 --
 ALTER TABLE `penawaran`
-  MODIFY `id_penawaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id_penawaran` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `role`
@@ -623,7 +535,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `sapipotong`
 --
 ALTER TABLE `sapipotong`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `sapisonok`
@@ -635,7 +547,7 @@ ALTER TABLE `sapisonok`
 -- AUTO_INCREMENT for table `sapitangghek`
 --
 ALTER TABLE `sapitangghek`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users`

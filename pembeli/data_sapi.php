@@ -19,8 +19,10 @@ $jenis_map = [
     'potong' => 5,
 ];
 
-$query = "SELECT ds.*, ms.name AS jenis_sapi FROM data_sapi ds
-          LEFT JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi";
+// Modify the query to join with the users table to get the seller's username
+$query = "SELECT ds.*, ms.name AS jenis_sapi, u.username AS username_penjual FROM data_sapi ds
+          LEFT JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi
+          LEFT JOIN users u ON ds.id_user_penjual = u.id_user"; // Join with users table
 if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
     $id_m = $jenis_map[$jenis_filter];
     // Using prepared statements to prevent SQL injection
@@ -432,15 +434,16 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                 <h6 class="text-primary mb-2">Detail Umum Sapi:</h6>
                                 <ul class="list-unstyled detail-list">
                                     <?php
-                                    $excluded_keys = ['id_sapi', 'id_macamSapi', 'foto_sapi', 'harga_sapi', 'jenis_sapi', 'nama_pemilik', 'contact_person'];
+                                    // Add 'username_penjual' to the excluded keys
+                                    $excluded_keys = ['id_sapi', 'id_macamSapi', 'foto_sapi', 'harga_sapi', 'jenis_sapi', 'nama_pemilik', 'contact_person', 'id_user_penjual', 'username_penjual'];
                                     foreach ($r as $key => $val):
                                         if (!in_array($key, $excluded_keys)):
                                             $display_key = ucfirst(str_replace('_', ' ', $key));
-                                            // FIX: Use null coalescing operator to handle null values
                                             echo "<li><strong>" . htmlspecialchars($display_key) . ":</strong> " . htmlspecialchars($val ?? '') . "</li>";
                                         endif;
                                     endforeach;
                                     ?>
+                                    <li><strong>Penjual:</strong> <?= htmlspecialchars($r['username_penjual'] ?? 'N/A') ?></li>
                                 </ul>
 
                                 <?php
@@ -464,7 +467,6 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                         echo '<hr><h6 class="text-primary">Detail Sapi ' . $display_name . ':</h6><ul class="list-unstyled">';
                                         foreach ($s_detail as $k => $v) {
                                             if ($k !== 'id' && $k !== 'id_sapi' && $k !== 'sapiSonok') { // 'sapiSonok' is only relevant for generation tables
-                                                // FIX: Use null coalescing operator to handle null values
                                                 echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
                                             }
                                         }
@@ -478,7 +480,6 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                                 echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-success">Generasi 1</h6><ul class="list-unstyled">';
                                                 foreach ($g1 as $k => $v) {
                                                     if ($k !== 'id' && $k !== 'sapiSonok') {
-                                                        // FIX: Use null coalescing operator to handle null values
                                                         echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
                                                     }
                                                 }
@@ -491,7 +492,6 @@ if ($jenis_filter != 'all' && isset($jenis_map[$jenis_filter])) {
                                                 echo '<div class="generation-box mt-3 p-3 border rounded"><h6 class="text-info">Generasi 2</h6><ul class="list-unstyled">';
                                                 foreach ($g2 as $k => $v) {
                                                     if ($k !== 'id' && $k !== 'sapiSonok') {
-                                                        // FIX: Use null coalescing operator to handle null values
                                                         echo "<li><strong>" . htmlspecialchars(ucfirst(str_replace('_', ' ', $k))) . ":</strong> " . htmlspecialchars($v ?? '') . "</li>";
                                                     }
                                                 }
