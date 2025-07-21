@@ -8,5 +8,5 @@ session_unset();
 session_destroy();
 
 // Redirect ke halaman login setelah logout
-header("Location: ../auth/login.php?message=Anda telah berhasil logout.");
+header("Location: ../index.php");
 exit();
