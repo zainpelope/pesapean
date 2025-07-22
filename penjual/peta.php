@@ -17,7 +17,7 @@ $selectedSapiId = $_GET['id_sapi'] ?? '';
 $sapiList = [];
 $latitude = '';
 $longitude = '';
-$cowName = ''; // Tambahkan variabel untuk nama sapi
+$cowName = ''; // Variabel untuk nama yang akan ditampilkan di popup peta
 
 $tabelMapping = [
     '1' => 'sapiSonok',
@@ -28,12 +28,16 @@ $tabelMapping = [
 ];
 
 $tabelSapi = $tabelMapping[$selectedKategori] ?? null;
+$loggedInUserId = $_SESSION['id_user'] ?? null; // Get the logged-in user's ID
 
-if (!empty($selectedKategori) && $tabelSapi) {
+if (!empty($selectedKategori) && $tabelSapi && $loggedInUserId) {
+    // Mengambil id_sapi, nama_pemilik, nama kategori sapi, dan NAMA SAPI INDIVIDU dari tabel spesifik
     $query = mysqli_query($koneksi, "
-        SELECT s.id_sapi, d.nama_pemilik AS nama_sapi
-        FROM $tabelSapi s
-        JOIN data_sapi d ON s.id_sapi = d.id_sapi
+        SELECT ds.id_sapi, ds.nama_pemilik, ms.name AS nama_kategori_sapi, ts.nama_sapi
+        FROM data_sapi ds
+        JOIN $tabelSapi ts ON ds.id_sapi = ts.id_sapi
+        JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi
+        WHERE ds.id_macamSapi = '$selectedKategori' AND ds.id_user_penjual = '$loggedInUserId'
     ");
     while ($row = mysqli_fetch_assoc($query)) {
         $sapiList[] = $row;
@@ -41,16 +45,18 @@ if (!empty($selectedKategori) && $tabelSapi) {
 }
 
 if (!empty($selectedSapiId) && $tabelSapi) {
+    // Mengambil latitude, longitude, dan nama_sapi untuk popup peta
     $lokasiQuery = mysqli_query($koneksi, "
-        SELECT d.latitude, d.longitude, d.nama_pemilik AS cow_name
-        FROM $tabelSapi s
-        JOIN data_sapi d ON s.id_sapi = d.id_sapi
-        WHERE s.id_sapi = '$selectedSapiId'
+        SELECT ds.latitude, ds.longitude, ts.nama_sapi AS cow_specific_name, ds.nama_pemilik
+        FROM data_sapi ds
+        JOIN $tabelSapi ts ON ds.id_sapi = ts.id_sapi
+        WHERE ds.id_sapi = '$selectedSapiId'
     ");
     $lokasi = mysqli_fetch_assoc($lokasiQuery);
     $latitude = $lokasi['latitude'] ?? '';
     $longitude = $lokasi['longitude'] ?? '';
-    $cowName = $lokasi['cow_name'] ?? ''; // Ambil nama sapi
+    // Prioritaskan nama_sapi dari tabel spesifik, fallback ke nama_pemilik jika kosong
+    $cowName = $lokasi['cow_specific_name'] ?? $lokasi['nama_pemilik'] ?? '';
 }
 ?>
 
@@ -543,7 +549,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                             <option value="">-- Pilih Sapi --</option>
                             <?php foreach ($sapiList as $sapi) : ?>
                                 <option value="<?= $sapi['id_sapi'] ?>" <?= ($selectedSapiId == $sapi['id_sapi']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($sapi['nama_sapi']) ?>
+                                    <?= htmlspecialchars($sapi['nama_sapi'] . " (Pemilik: " . $sapi['nama_pemilik'] . " - Jenis: " . $sapi['nama_kategori_sapi'] . ")") ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

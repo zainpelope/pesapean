@@ -1,5 +1,13 @@
 <?php
-include '../koneksi.php';
+// Aktifkan error reporting untuk debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Mulai sesi (penting untuk mengecek status login)
+session_start();
+
+include '../koneksi.php'; // Pastikan path ini benar sesuai struktur folder Anda
 
 $kategoriQuery = mysqli_query($koneksi, "SELECT * FROM macamSapi");
 
@@ -9,7 +17,7 @@ $selectedSapiId = $_GET['id_sapi'] ?? '';
 $sapiList = [];
 $destinationLatitude = '';
 $destinationLongitude = '';
-$cowName = '';
+$cowName = ''; // Variabel untuk nama yang akan ditampilkan di info rute
 
 $tabelMapping = [
     '1' => 'sapiSonok',
@@ -20,12 +28,16 @@ $tabelMapping = [
 ];
 
 $tabelSapi = $tabelMapping[$selectedKategori] ?? null;
+$loggedInUserId = $_SESSION['id_user'] ?? null; // Dapatkan ID pengguna yang login
 
-if (!empty($selectedKategori) && $tabelSapi) {
+if (!empty($selectedKategori) && $tabelSapi && $loggedInUserId) {
+    // Mengambil id_sapi, nama_pemilik, nama kategori sapi, dan NAMA SAPI INDIVIDU dari tabel spesifik
     $query = mysqli_query($koneksi, "
-        SELECT s.id_sapi, d.nama_pemilik AS nama_sapi
-        FROM $tabelSapi s
-        JOIN data_sapi d ON s.id_sapi = d.id_sapi
+        SELECT ds.id_sapi, ds.nama_pemilik, ms.name AS nama_kategori_sapi, ts.nama_sapi
+        FROM data_sapi ds
+        JOIN $tabelSapi ts ON ds.id_sapi = ts.id_sapi
+        JOIN macamSapi ms ON ds.id_macamSapi = ms.id_macamSapi
+        WHERE ds.id_macamSapi = '$selectedKategori' AND ds.id_user_penjual = '$loggedInUserId'
     ");
     while ($row = mysqli_fetch_assoc($query)) {
         $sapiList[] = $row;
@@ -33,16 +45,18 @@ if (!empty($selectedKategori) && $tabelSapi) {
 }
 
 if (!empty($selectedSapiId) && $tabelSapi) {
+    // Mengambil latitude, longitude, dan nama_sapi untuk info rute
     $lokasiQuery = mysqli_query($koneksi, "
-        SELECT d.latitude, d.longitude, d.nama_pemilik
-        FROM $tabelSapi s
-        JOIN data_sapi d ON s.id_sapi = d.id_sapi
-        WHERE s.id_sapi = '$selectedSapiId'
+        SELECT ds.latitude, ds.longitude, ts.nama_sapi AS cow_specific_name, ds.nama_pemilik
+        FROM data_sapi ds
+        JOIN $tabelSapi ts ON ds.id_sapi = ts.id_sapi
+        WHERE ds.id_sapi = '$selectedSapiId'
     ");
     $lokasi = mysqli_fetch_assoc($lokasiQuery);
     $destinationLatitude = $lokasi['latitude'] ?? '';
     $destinationLongitude = $lokasi['longitude'] ?? '';
-    $cowName = $lokasi['nama_pemilik'] ?? '';
+    // Prioritaskan nama_sapi dari tabel spesifik, fallback ke nama_pemilik jika kosong
+    $cowName = $lokasi['cow_specific_name'] ?? $lokasi['nama_pemilik'] ?? '';
 }
 ?>
 
@@ -420,7 +434,17 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
             </ul>
             <div class="auth-links">
-                <a href="#login" class="btn btn-primary">Profile</a>
+                <?php
+                // Cek apakah pengguna sudah login
+                if (isset($_SESSION['id_user'])) {
+                    // Pengguna sudah login, tampilkan tombol Profil dan Logout
+                    echo '<a href="../auth/profile.php" class="btn btn-primary">Profile</a>';
+                } else {
+                    // Pengguna belum login, tampilkan tombol Login dan Daftar
+                    echo '<a href="../auth/login.php" class="btn btn-primary">Login</a>';
+                    echo '<a href="../auth/register.php" class="btn btn-outline-primary">Daftar</a>';
+                }
+                ?>
             </div>
         </nav>
     </header>
@@ -443,7 +467,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                         <?php mysqli_data_seek($kategoriQuery, 0); ?>
                         <?php while ($kat = mysqli_fetch_assoc($kategoriQuery)) : ?>
                             <option value="<?= $kat['id_macamSapi'] ?>" <?= ($selectedKategori == $kat['id_macamSapi']) ? 'selected' : '' ?>>
-                                <?= $kat['name'] ?>
+                                <?= htmlspecialchars($kat['name']) ?>
                             </option>
                         <?php endwhile; ?>
                     </select>
@@ -456,7 +480,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                             <option value="">-- Pilih Sapi --</option>
                             <?php foreach ($sapiList as $sapi) : ?>
                                 <option value="<?= $sapi['id_sapi'] ?>" <?= ($selectedSapiId == $sapi['id_sapi']) ? 'selected' : '' ?>>
-                                    <?= $sapi['nama_sapi'] ?>
+                                    <?= htmlspecialchars($sapi['nama_sapi'] . " (Pemilik: " . $sapi['nama_pemilik'] . " - Jenis: " . $sapi['nama_kategori_sapi'] . ")") ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -477,8 +501,8 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
             <script>
                 function getRoute() {
-                    var destinationLat = <?= $destinationLatitude ?>;
-                    var destinationLon = <?= $destinationLongitude ?>;
+                    var destinationLat = <?= json_encode($destinationLatitude) ?>;
+                    var destinationLon = <?= json_encode($destinationLongitude) ?>;
                     var googleMapsLink = document.getElementById('googleMapsLink');
 
                     if (navigator.geolocation) {
@@ -508,8 +532,8 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
                 // Initial setup for the manual link (if geolocation is not supported or not used)
                 document.addEventListener('DOMContentLoaded', function() {
-                    var destinationLat = <?= $destinationLatitude ?>;
-                    var destinationLon = <?= $destinationLongitude ?>;
+                    var destinationLat = <?= json_encode($destinationLatitude) ?>;
+                    var destinationLon = <?= json_encode($destinationLongitude) ?>;
                     var googleMapsLink = document.getElementById('googleMapsLink');
                     // This link will open Google Maps centered on the destination, without a route from current location
                     var googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${destinationLat},${destinationLon}`;
