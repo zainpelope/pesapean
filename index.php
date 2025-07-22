@@ -91,13 +91,13 @@ if ($koneksi) {
     <header class="main-header">
         <nav class="navbar">
             <div class="logo">
-                <a href="pembeli/beranda.php">Pesapean</a>
+                <a href="index.php">Pesapean</a>
             </div>
             <ul class="nav-links">
-                <li><a href="pembeli/beranda.php">Beranda</a></li>
-                <li><a href="pembeli/peta.php" <?php if (!isset($_SESSION['id_user'])) echo 'data-bs-toggle="modal" data-bs-target="#loginPromptModal" onclick="return false;"'; ?>>Peta Interaktif</a></li>
-                <li><a href="pembeli/data_sapi.php?jenis=sonok" <?php if (!isset($_SESSION['id_user'])) echo 'data-bs-toggle="modal" data-bs-target="#loginPromptModal" onclick="return false;"'; ?>>Data Sapi</a></li>
-                <li><a href="pembeli/lelang.php" <?php if (!isset($_SESSION['id_user'])) echo 'data-bs-toggle="modal" data-bs-target="#loginPromptModal" onclick="return false;"'; ?>>Lelang</a></li>
+                <li><a href="index.php">Beranda</a></li>
+                <li><a href="pengunjung/peta.php">Peta Interaktif</a></li>
+                <li><a href="pengunjung/data_sapi.php">Data Sapi</a></li>
+                <li><a href="pengunjung/lelang.php">Lelang</a></li>
                 <li><a href="pembeli/pesan.php" <?php if (!isset($_SESSION['id_user'])) echo 'data-bs-toggle="modal" data-bs-target="#loginPromptModal" onclick="return false;"'; ?>>Pesan</a></li>
             </ul>
             <div class="auth-links">
