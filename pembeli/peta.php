@@ -30,10 +30,11 @@ $tabelMapping = [
 $tabelSapi = $tabelMapping[$selectedKategori] ?? null;
 
 if (!empty($selectedKategori) && $tabelSapi) {
+    // Modified query to fetch both cow's specific name and owner's name
     $query = mysqli_query($koneksi, "
-        SELECT s.id_sapi, d.nama_pemilik AS nama_sapi
+        SELECT ds.id_sapi, s.nama_sapi, ds.nama_pemilik
         FROM $tabelSapi s
-        JOIN data_sapi d ON s.id_sapi = d.id_sapi
+        JOIN data_sapi ds ON s.id_sapi = ds.id_sapi
     ");
     while ($row = mysqli_fetch_assoc($query)) {
         $sapiList[] = $row;
@@ -42,15 +43,22 @@ if (!empty($selectedKategori) && $tabelSapi) {
 
 if (!empty($selectedSapiId) && $tabelSapi) {
     $lokasiQuery = mysqli_query($koneksi, "
-        SELECT d.latitude, d.longitude, d.nama_pemilik AS cow_name
+        SELECT ds.latitude, ds.longitude, s.nama_sapi AS cow_name, ds.nama_pemilik AS owner_name
         FROM $tabelSapi s
-        JOIN data_sapi d ON s.id_sapi = d.id_sapi
+        JOIN data_sapi ds ON s.id_sapi = ds.id_sapi
         WHERE s.id_sapi = '$selectedSapiId'
     ");
     $lokasi = mysqli_fetch_assoc($lokasiQuery);
     $latitude = $lokasi['latitude'] ?? '';
     $longitude = $lokasi['longitude'] ?? '';
-    $cowName = $lokasi['cow_name'] ?? ''; // Ambil nama sapi
+    // Concatenate cow's name and owner's name for display
+    if (!empty($lokasi['cow_name']) && !empty($lokasi['owner_name'])) {
+        $cowName = $lokasi['cow_name'] . ' (' . $lokasi['owner_name'] . ')';
+    } elseif (!empty($lokasi['cow_name'])) {
+        $cowName = $lokasi['cow_name'];
+    } elseif (!empty($lokasi['owner_name'])) {
+        $cowName = 'Pemilik: ' . $lokasi['owner_name'];
+    }
 }
 ?>
 
@@ -538,7 +546,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                             <option value="">-- Pilih Sapi --</option>
                             <?php foreach ($sapiList as $sapi) : ?>
                                 <option value="<?= $sapi['id_sapi'] ?>" <?= ($selectedSapiId == $sapi['id_sapi']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($sapi['nama_sapi']) ?>
+                                    <?= htmlspecialchars($sapi['nama_sapi']) ?> (Pemilik: <?= htmlspecialchars($sapi['nama_pemilik']) ?>)
                                 </option>
                             <?php endforeach; ?>
                         </select>

@@ -9,7 +9,7 @@ $selectedSapiId = $_GET['id_sapi'] ?? '';
 $sapiList = [];
 $destinationLatitude = '';
 $destinationLongitude = '';
-$cowName = '';
+$cowNameDisplay = ''; // Variabel untuk nama sapi yang akan ditampilkan
 
 $tabelMapping = [
     '1' => 'sapiSonok',
@@ -22,8 +22,9 @@ $tabelMapping = [
 $tabelSapi = $tabelMapping[$selectedKategori] ?? null;
 
 if (!empty($selectedKategori) && $tabelSapi) {
+    // MODIFIKASI: Ambil nama_sapi dari tabel sapi spesifik (s) dan nama_pemilik dari data_sapi (d)
     $query = mysqli_query($koneksi, "
-        SELECT s.id_sapi, d.nama_pemilik AS nama_sapi
+        SELECT s.id_sapi, s.nama_sapi AS nama_sapi_asli, d.nama_pemilik
         FROM $tabelSapi s
         JOIN data_sapi d ON s.id_sapi = d.id_sapi
     ");
@@ -33,8 +34,9 @@ if (!empty($selectedKategori) && $tabelSapi) {
 }
 
 if (!empty($selectedSapiId) && $tabelSapi) {
+    // MODIFIKASI: Ambil nama_sapi dari tabel sapi spesifik (s) dan nama_pemilik dari data_sapi (d)
     $lokasiQuery = mysqli_query($koneksi, "
-        SELECT d.latitude, d.longitude, d.nama_pemilik
+        SELECT d.latitude, d.longitude, s.nama_sapi AS nama_sapi_asli, d.nama_pemilik
         FROM $tabelSapi s
         JOIN data_sapi d ON s.id_sapi = d.id_sapi
         WHERE s.id_sapi = '$selectedSapiId'
@@ -42,7 +44,15 @@ if (!empty($selectedSapiId) && $tabelSapi) {
     $lokasi = mysqli_fetch_assoc($lokasiQuery);
     $destinationLatitude = $lokasi['latitude'] ?? '';
     $destinationLongitude = $lokasi['longitude'] ?? '';
-    $cowName = $lokasi['nama_pemilik'] ?? '';
+
+    // MODIFIKASI: Gabungkan nama sapi asli dan nama pemilik untuk ditampilkan
+    if (!empty($lokasi['nama_sapi_asli']) && !empty($lokasi['nama_pemilik'])) {
+        $cowNameDisplay = htmlspecialchars($lokasi['nama_sapi_asli'] . ' (Pemilik: ' . $lokasi['nama_pemilik'] . ')');
+    } elseif (!empty($lokasi['nama_sapi_asli'])) {
+        $cowNameDisplay = htmlspecialchars($lokasi['nama_sapi_asli']);
+    } elseif (!empty($lokasi['nama_pemilik'])) {
+        $cowNameDisplay = 'Pemilik: ' . htmlspecialchars($lokasi['nama_pemilik']);
+    }
 }
 ?>
 
@@ -456,7 +466,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                             <option value="">-- Pilih Sapi --</option>
                             <?php foreach ($sapiList as $sapi) : ?>
                                 <option value="<?= $sapi['id_sapi'] ?>" <?= ($selectedSapiId == $sapi['id_sapi']) ? 'selected' : '' ?>>
-                                    <?= $sapi['nama_sapi'] ?>
+                                    <?= htmlspecialchars($sapi['nama_sapi_asli'] . ' (Pemilik: ' . $sapi['nama_pemilik'] . ')') ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -467,7 +477,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
         <?php if (!empty($destinationLatitude) && !empty($destinationLongitude)) : ?>
             <div class="route-info-card">
-                <h3>Rute ke Sapi: <span class="cow-name"><?= htmlspecialchars($cowName) ?></span></h3>
+                <h3>Rute ke Sapi: <span class="cow-name"><?= $cowNameDisplay ?></span></h3>
                 <p>Klik tombol "Lihat Rute" untuk mendapatkan petunjuk arah dari lokasi Anda saat ini ke lokasi sapi.</p>
                 <button class="btn btn-secondary" onclick="getRoute()">Lihat Rute</button>
 
@@ -477,8 +487,8 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
             <script>
                 function getRoute() {
-                    var destinationLat = <?= $destinationLatitude ?>;
-                    var destinationLon = <?= $destinationLongitude ?>;
+                    var destinationLat = <?= json_encode($destinationLatitude) ?>;
+                    var destinationLon = <?= json_encode($destinationLongitude) ?>;
                     var googleMapsLink = document.getElementById('googleMapsLink');
 
                     if (navigator.geolocation) {
@@ -486,12 +496,12 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                             var originLat = position.coords.latitude;
                             var originLon = position.coords.longitude;
                             // Correct Google Maps URL for directions from origin to destination
-                            var googleMapsUrl = `https://www.google.com/maps/dir/${originLat},${originLon}/${destinationLat},${destinationLon}`;
+                            var googleMapsUrl = `http://maps.google.com/maps?saddr=${originLat},${originLon}&daddr=${destinationLat},${destinationLon}`;
                             window.open(googleMapsUrl, '_blank');
                         }, function(error) {
                             alert('Gagal mendapatkan lokasi Anda. Pastikan layanan lokasi diaktifkan. Anda dapat menggunakan tautan "Buka di Google Maps (Tujuan Saja)" di bawah.');
                             // Fallback to direct link to destination only
-                            var googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${destinationLat},${destinationLon}`;
+                            var googleMapsUrl = `http://maps.google.com/maps?q=${destinationLat},${destinationLon}`;
                             googleMapsLink.href = googleMapsUrl;
                             googleMapsLink.textContent = 'Buka di Google Maps (Tujuan Saja)';
                             googleMapsLink.style.display = 'inline-block';
@@ -499,7 +509,7 @@ if (!empty($selectedSapiId) && $tabelSapi) {
                     } else {
                         alert('Geolocation tidak didukung oleh browser Anda. Anda dapat menggunakan tautan "Buka di Google Maps (Tujuan Saja)" di bawah.');
                         // Fallback to direct link to destination only
-                        var googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${destinationLat},${destinationLon}`;
+                        var googleMapsUrl = `http://maps.google.com/maps?q=${destinationLat},${destinationLon}`;
                         googleMapsLink.href = googleMapsUrl;
                         googleMapsLink.textContent = 'Buka di Google Maps (Tujuan Saja)';
                         googleMapsLink.style.display = 'inline-block';
@@ -508,14 +518,16 @@ if (!empty($selectedSapiId) && $tabelSapi) {
 
                 // Initial setup for the manual link (if geolocation is not supported or not used)
                 document.addEventListener('DOMContentLoaded', function() {
-                    var destinationLat = <?= $destinationLatitude ?>;
-                    var destinationLon = <?= $destinationLongitude ?>;
+                    var destinationLat = <?= json_encode($destinationLatitude) ?>;
+                    var destinationLon = <?= json_encode($destinationLongitude) ?>;
                     var googleMapsLink = document.getElementById('googleMapsLink');
                     // This link will open Google Maps centered on the destination, without a route from current location
-                    var googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${destinationLat},${destinationLon}`;
+                    var googleMapsUrl = `http://maps.google.com/maps?q=${destinationLat},${destinationLon}`;
                     googleMapsLink.href = googleMapsUrl;
-                    googleMapsLink.textContent = 'Buka di Google Maps (Tujuan Saja)';
-                    googleMapsLink.style.display = 'inline-block';
+                    // Ensure the link is visible if destination data is available
+                    if (destinationLat && destinationLon) {
+                        googleMapsLink.style.display = 'inline-block';
+                    }
                 });
             </script>
         <?php elseif (!empty($selectedKategori)) : ?>
